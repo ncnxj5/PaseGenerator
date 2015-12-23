@@ -1,0 +1,7 @@
+main proc
+	invoke fuse
+	;invoke print_num,eax
+	invoke crt_scanf
+main endp
+
+end main
