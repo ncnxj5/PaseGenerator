@@ -12,6 +12,8 @@ includelib e:\masm32\lib\msvcrt.lib
 	spaFmt db ' ',0
 	entFmt db '---',0
 	FLOAT_TEMP dd 0
+	BUFFER_  dword 0,0,0,0
+	BUFFER_F REAL8 0.0
 	szFmt db '%d, ', 0
 	F_EAX REAL8 0.0
 	F_EBX REAL8 0.0

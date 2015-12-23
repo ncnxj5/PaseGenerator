@@ -1,4 +1,25 @@
 .code
+
+inputnum proc
+	invoke crt_scanf, addr numFmt,addr BUFFER_
+	mov eax,BUFFER_[0]
+	ret 
+inputnum endp
+
+inputcha proc
+	invoke crt_scanf, addr chaFmt,addr BUFFER_
+	mov eax,BUFFER_[0]
+	ret 
+inputcha endp
+
+inputflo proc
+	invoke crt_scanf, addr floFmt,addr BUFFER_F
+	finit
+	fld BUFFER_F
+	fstp F_EAX
+	ret 
+inputflo endp
+
 printspace proc
 	invoke crt_printf, addr spaFmt
 	ret

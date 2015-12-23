@@ -10,7 +10,7 @@ public class MyTree {
 	public final int DWORD_LENGTH = 4;
 	
 	public int whileflag = 1;
-	public int outFlag = 1;
+	public int outFlag = 0;
 	public int flag = 2;
 	public int cntOrder = 0;
 	public int floatOrder = 0;
@@ -21,7 +21,7 @@ public class MyTree {
 	public Generator tableManager = null;
 	public MyTree() {
 		threeAddCodes = new ArrayList<String>(); 
-		dataCodes = new ArrayList<String>(); 
+		dataCodes = new ArrayList<String>();
 	}
 	public void setRoot(ExpNode root){
 		this.root = root;
@@ -39,7 +39,7 @@ public class MyTree {
 			}
 			threeAddCodes.add(".code");
 		}
-		else if(outFlag==1){
+		else{
 			for(String key:tableManager.root.vars.keySet()){
 				dataCodes.add(dataDefCode(key,tableManager.root.vars.get(key).type,tableManager.root.vars.get(key).isArray));
 			}
@@ -49,16 +49,17 @@ public class MyTree {
 	}
 	public String getDataCodesString(){
 		String resString = "";
-		String whiteLine = "\n    ";
+		String whiteLine = "\r\n    ";
 		for(int i=0;i<dataCodes.size();i++){
 			resString+=(dataCodes.get(i)+whiteLine);
 		}
 		return resString;
 	}
 
+
 	public String getCodeCodesString(){
 		String resString = "";
-		String whiteLine = "\n    ";
+		String whiteLine = "\r\n    ";
 		for(int i=0;i<threeAddCodes.size();i++){
 			resString+=(threeAddCodes.get(i)+whiteLine);
 		}
@@ -69,7 +70,8 @@ public class MyTree {
 		System.out.println("BEGIN");
 		tableManager.root.print();
 		for(int i =0;i<threeAddCodes.size();i++){
-			if(threeAddCodes.get(i).charAt(0)!='J'&&threeAddCodes.get(i).charAt(0)!='.' &&threeAddCodes.get(i).charAt(threeAddCodes.get(i).length()-1)!='c')
+			if(threeAddCodes.get(i).charAt(0)!='J' || threeAddCodes.get(i).charAt(0)!='.' ||
+					((threeAddCodes.get(i).length()>=5)&&!threeAddCodes.get(i).substring((threeAddCodes.get(i).length()-4)).equals("proc")))
 				System.out.println("    "+threeAddCodes.get(i));
 			else
 				System.out.println(threeAddCodes.get(i));
@@ -226,7 +228,7 @@ public class MyTree {
 			for(int i =0;i<termNode.expChildren.size();i++){
 				cntReg = cntOrder;
 				threeAddCodes.add(get1AddCode("",termNode.expChildren.get(i).mText));
-				threeAddCodes.add(letValCode(arrayName+"["+i+"*4]",cntReg+""));
+				threeAddCodes.add(letValCode(arrayName+"["+i+"]",cntReg+""));
 			}
 		}
 		else{
@@ -362,7 +364,7 @@ public class MyTree {
 		//judge whether the caller should has return value
 		if(!parentVal.equals(""))
 			//threeAddCodes.add("t"+parentVal+"="+"eax");
-			threeAddCodes.add(get1AddCodeSP(parentVal,0+""));
+			threeAddCodes.add(regGeteax(parentVal));
 	}
 	
 	public void retStm(ExpNode retNode){
@@ -565,9 +567,9 @@ public class MyTree {
 					int cntVal = floatOrder;
 					if(termNode.expChildren.get(i+1).mText.equals("NUM")){
 						//call type shift
-						String shiftRes = "";
-						//num2Float();
-						threeAddCodes.add(f_get1AddCode("",shiftRes));
+						threeAddCodes.add(num2Float(subtermResString));
+						//WARNING hard code
+						threeAddCodes.add(f_get1AddCode("","f_eax"));
 					}
 					i++; 
 					//the code should let result to the resVal
@@ -578,8 +580,8 @@ public class MyTree {
 					int cntVal = floatOrder;
 					if(termNode.expChildren.get(i+1).mText.equals("NUM")){
 						//call type shift
-						String shiftRes = "";
-						threeAddCodes.add(f_get1AddCode("",shiftRes));
+						threeAddCodes.add(num2Float(subtermResString));
+						threeAddCodes.add(f_get1AddCode("","f_eax"));
 					}
 					i++;
 					//the code should let result to the resVal
@@ -607,6 +609,7 @@ public class MyTree {
 						threeAddCodes.add(get1AddCodeArray(parntVal, atomResString));
 					}
 					else if(atomResString.equals("call")){
+						//threeAddCodes.add(regGeteax(resVal+""));
 						;
 					}
 					else{
@@ -700,7 +703,7 @@ public class MyTree {
 			return varLRD(atomNode.expChildren.get(0),parntVal);
 		}
 		else if(contentString.equals("expre")){
-			return "t"+expressStm(atomNode.expChildren.get(0));
+			return "T"+expressStm(atomNode.expChildren.get(0));
 		}
 		else if(contentString.equals("CALL")){
 			//WARNING hard code and disconsideration
@@ -718,7 +721,7 @@ public class MyTree {
 		if(varNode.expChildren.size()!=1){
 			varContentString+=varNode.expChildren.get(0).mText;
 			String termVal = termLRD(varNode.expChildren.get(1).expChildren.get(0));
-			varContentString+="[t";
+			varContentString+="[T";
 			varContentString+=termVal;
 			varContentString+="]";
 		}
@@ -731,7 +734,7 @@ public class MyTree {
 				else if(contentString.equals("ARRAY")){
 					//WARNING hard code to mark register
 					String termVal = termLRD(varNode.expChildren.get(i).expChildren.get(0));
-					varContentString+="[t";
+					varContentString+="[T";
 					varContentString+=termVal;
 					varContentString+="]";
 					threeAddCodes.add(get1AddCodeSP("", termVal));
@@ -746,7 +749,7 @@ public class MyTree {
 	}
 	
 	public String funcBegCode(String funcName, ArrayList<String>params){
-		String resString = funcName+" proc ";
+		String resString = "    "+funcName+" proc ";
 		if(params.size()!=0 && params!=null){
 			//System.out.println("funcbeg "+params.size());
 			for(int i=0;i<params.size()-1;i++)
@@ -773,7 +776,11 @@ public class MyTree {
 		else if(!valName.equals("global_float_const")){
 			resString = (valName+" "+typeString+" ");
 			for(int i=0;i<isArray-1;i++){
-				resString+="0,";
+				resString+="0";
+				if(i%10==0)
+					resString+="\r\n    "+"DWORD ";
+				else
+					resString+=",";
 			}
 			resString+="0";
 		} 
@@ -787,6 +794,8 @@ public class MyTree {
 				resString+=(cntConst+",");
 			}
 		} 
+		else
+			resString = " ";
 		return resString;
 	}
 	
@@ -816,8 +825,8 @@ public class MyTree {
 		return resString;
 	}
 	public String regGeteax(String resVal){
-		String resString = "t"+resVal+"=eax";
-		String asmString = "mov t"+resVal+" eax";
+		String resString = "T"+resVal+"=eax";
+		String asmString = "mov T"+resVal+" eax";
 		String regString = "mov "+judgeReg(Integer.parseInt(resVal))+",eax";
 		//cntOrder++;
 		//return resString;
@@ -829,8 +838,8 @@ public class MyTree {
 			return resString;
 	}
 	public String regMovCode(String resVal){
-		String resString = "eax= t"+resVal;
-		String asmString = "mov eax t"+resVal;
+		String resString = "eax= T"+resVal;
+		String asmString = "mov eax T"+resVal;
 		String regString = "mov eax,"+judgeReg(Integer.parseInt(resVal));
 		//cntOrder++;
 		//return resString;
@@ -843,7 +852,7 @@ public class MyTree {
 	}
 	public String regMovVar(String resVal,String srcVal){
 		String resString = resVal+"="+srcVal;
-		String asmString = "mov t"+resVal+srcVal;
+		String asmString = "mov T"+resVal+srcVal;
 		String regString = "mov "+judgeReg(resVal)+","+(srcVal);
 		if(flag==1)
 			return asmString;
@@ -854,8 +863,8 @@ public class MyTree {
 	}
 
 	public String regMovCode(String resVal,String srcVal){
-		String resString = resVal+"= t"+srcVal;
-		String asmString = "mov t"+resVal+" t"+srcVal;
+		String resString = resVal+"= T"+srcVal;
+		String asmString = "mov T"+resVal+" T"+srcVal;
 		String regString = "mov "+judgeReg(resVal)+","+judgeReg(srcVal);
 		//cntOrder++;
 		//return resString;
@@ -873,7 +882,7 @@ public class MyTree {
 	}
 	
 	public String pushCode(){
-		String resString = "push t"+cntOrder;
+		String resString = "push T"+cntOrder;
 		cntOrder++;
 		return resString;
 	}
@@ -928,7 +937,7 @@ public class MyTree {
 		String whiteLine = "\n    "; 
 		String resString =  "tf"+cntOrder+"="+" "+value;
 		String asmString = "mov "+"tf"+cntOrder+" "+value;
-		if(value.charAt(0)=='t')
+		if(value.charAt(0)=='T')
 			value=judgeReg(value.substring(1));
 		String regInit = "finit";
 		String regPush = "fld "+""+value;
@@ -951,9 +960,9 @@ public class MyTree {
 	
 	public String get1AddCode(String unusedsymbol,String value){
 		//REMAINING here only evaluation
-		String resString =  "t"+cntOrder+"="+" "+value;
-		String asmString = "mov "+"t"+cntOrder+" "+value;
-		if(value.charAt(0)=='t')
+		String resString =  "T"+cntOrder+"="+" "+value;
+		String asmString = "mov "+"T"+cntOrder+" "+value;
+		if(value.charAt(0)=='T')
 			value=judgeReg(value.substring(1));
 		String regString = "mov "+judgeReg(cntOrder)+","+value;
 		cntOrder+=1;
@@ -971,7 +980,7 @@ public class MyTree {
 		String arrayOrderNum = "";
 		String srcVar = "";
 		
-		if(resVal.contains("t")&&resVal.contains("[")&&resVal.contains("]")){
+		if(resVal.contains("T")&&resVal.contains("[")&&resVal.contains("]")){
 			int kuohao = resVal.indexOf('[');
 			int kuohao2 = resVal.indexOf(']');
 			arrayOrderNum = resVal.substring(kuohao+2,kuohao2);
@@ -979,8 +988,8 @@ public class MyTree {
 			srcVar = resVal.substring(0,kuohao);
 			arrayFlag = 1;
 		}
-		String resString = resVal+"="+" t"+srcReg;
-		String asmString = "mov "+resVal+" t"+srcReg;
+		String resString = resVal+"="+" T"+srcReg;
+		String asmString = "mov "+resVal+" T"+srcReg;
 		String regString = "";
 		String arrayLocString = "";
 		
@@ -990,7 +999,7 @@ public class MyTree {
 			//if local
 			System.out.println("null before srcVar is "+srcVar);
 			if(tableManager.getVar("", srcVar).isFormal==0)
-				regString = "mov "+srcVar+"["+judgeReg(arrayOrderNum)+"]"+","+judgeReg(srcReg);
+				regString = "mov "+srcVar+"["+judgeReg(arrayOrderNum)+"*4"+"]"+","+judgeReg(srcReg);
 			else{
 				int arrayReg = cntOrder;
 				arrayLocString = get1AddCode("",resVal.substring(0,resVal.indexOf('[')));
@@ -1013,7 +1022,7 @@ public class MyTree {
 		String arrayOrderNum = "";
 		String srcVar = "";
 		
-		if(resVal.contains("t")&&resVal.contains("[")&&resVal.contains("]")){
+		if(resVal.contains("T")&&resVal.contains("[")&&resVal.contains("]")){
 			int kuohao = resVal.indexOf('[');
 			int kuohao2 = resVal.indexOf(']');
 			arrayOrderNum = resVal.substring(kuohao+2,kuohao2);
@@ -1021,8 +1030,8 @@ public class MyTree {
 			srcVar = resVal.substring(0,kuohao);
 			arrayFlag = 1;
 		}
-		String resString = resVal+"="+" t"+srcReg;
-		String asmString = "mov "+resVal+" t"+srcReg;
+		String resString = resVal+"="+" T"+srcReg;
+		String asmString = "mov "+resVal+" T"+srcReg;
 		String regString = "";
 		String arrayLocString = "";
 		
@@ -1057,8 +1066,8 @@ public class MyTree {
 	}
 	
 	public String get1AddCodeSP(String resVal, String srcVal){
-		String resString =  "t"+resVal+"="+" t"+srcVal;
-		String asmString = "mov "+"t"+resVal+" t"+srcVal;
+		String resString =  "T"+resVal+"="+" T"+srcVal;
+		String asmString = "mov "+"T"+resVal+" T"+srcVal;
 		String regString = "mov "+judgeReg(resVal)+","+judgeReg(srcVal);
 		if(flag==1)
 			return asmString;
@@ -1073,14 +1082,14 @@ public class MyTree {
 		int kuohao2 = srcVal.indexOf(']');
 		String srcReg = srcVal.substring(kuohao+2,kuohao2);
 		String srcVar = srcVal.substring(0,kuohao);
-		String resString =  "t"+resVal+"="+" "+srcVal;
+		String resString =  "T"+resVal+"="+" "+srcVal;
 		String asmString = resString;
-		String regString = "mov "+judgeReg(resVal)+","+srcVar+"["+judgeReg(srcReg)+"]";
+		String regString = "mov "+judgeReg(resVal)+","+srcVar+"["+judgeReg(srcReg)+"*4"+"]";
 		
 		String arrayLocString = "";
 		//if local
 		if(tableManager.getVar("", srcVar).isFormal==0)
-			regString = "mov "+judgeReg(resVal)+","+srcVar+"["+judgeReg(srcReg)+"]";
+			regString = "mov "+judgeReg(resVal)+","+srcVar+"["+judgeReg(srcReg)+"*4"+"]";
 		else{
 			int arrayReg = cntOrder;
 			arrayLocString = get1AddCode("",srcVal.substring(0,srcVal.indexOf('[')));
@@ -1097,25 +1106,25 @@ public class MyTree {
 	}
 	
 	public String get2AddCode(String symbol){
-		String resString =  "t"+cntOrder+"="+" "+symbol+" "+"t"+(cntOrder+1);
+		String resString =  "T"+cntOrder+"="+" "+symbol+" "+"T"+(cntOrder+1);
 		cntOrder+=2;
 		return resString;
 	}
 	public String get2AddCode(String symbol, int state){
-		String resString =  "t"+cntOrder+"="+" "+symbol+" "+"t"+(cntOrder-1);
+		String resString =  "T"+cntOrder+"="+" "+symbol+" "+"T"+(cntOrder-1);
 		cntOrder+=1;
 		return resString;
 	}
 	public String get3AddCode(String symbol){
-		String resString =  "t"+cntOrder+"="+" "+"t"+(cntOrder+1)+" "+symbol+" "+"t"+(cntOrder+2);
+		String resString =  "T"+cntOrder+"="+" "+"T"+(cntOrder+1)+" "+symbol+" "+"T"+(cntOrder+2);
 		cntOrder+=3;
 		return resString;
 		
 	}
 	public String get3AddCode(String symbol, int resVal, String succVal){
 		
-		String resString =  "t"+resVal+"="+" "+symbol+" "+"t"+succVal;
-		String asmString = symbol+" "+"t"+resVal+","+"t"+succVal;
+		String resString =  "T"+resVal+"="+" "+symbol+" "+"T"+succVal;
+		String asmString = symbol+" "+"T"+resVal+","+"T"+succVal;
 		String regString = symbol+" "+judgeReg(resVal)+","+judgeReg(Integer.parseInt(succVal));
 
 		if(flag==1)
@@ -1145,7 +1154,7 @@ public class MyTree {
 	}
 	
 	public String get3AddCode(String symbol,String succ){
-		String resString =  "t"+cntOrder+"="+"t"+(cntOrder+1)+symbol+" "+"t"+" "+(cntOrder+2);
+		String resString =  "T"+cntOrder+"="+"T"+(cntOrder+1)+symbol+" "+"T"+" "+(cntOrder+2);
 		cntOrder+=3;
 		return resString;
 		

@@ -33,6 +33,13 @@ public class Generator {
 		root.AddEfunc("printspace");
 		root.funcs.get("printspace").type = "NUM";
 		
+		root.AddEfunc("inputnum");
+		root.funcs.get("inputnum").type = "CHAR";
+		root.AddEfunc("inputcha");
+		root.funcs.get("inputcha").type = "NUM";
+		root.AddEfunc("inputflo");
+		root.funcs.get("inputflo").type = "FLOAT";
+		
 		root.AddEfunc("fadd");
 		root.funcs.get("fadd").type = "NUM";
 		root.funcs.get("fadd").addPara("f1", "FLOAT", 0);
