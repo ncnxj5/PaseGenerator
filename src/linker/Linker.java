@@ -109,6 +109,20 @@ public class Linker {
             System.out.println("[Linker]:>Oooops! EXE Broken -w=");
         }  
 	}
+	private static void funcCaller(String filename)
+	{
+		try {
+			//use the MASM /bin link.exe to create OBJ file
+			// case that using /subsystem:console
+			// but not /subsystem:windows! that will only can used by xxx.exe>out.txt
+		executeCommond("cmd /c  start "+filename+".exe");
+		System.out.println("[Linker]:>Run "+filename+".exe");
+		} 
+		catch (Exception e) {  
+            e.printStackTrace();
+            System.out.println("[Linker]:>Cannot Run "+filename+".exe -w=");
+        }  
+	}
 	public static void LinkEntrance(String data,String code,String name)
 	{
 		writefile(data,code,name);
@@ -117,6 +131,7 @@ public class Linker {
 		//create OBJ file
 		objLinker(name);
 		//create EXE file
+		funcCaller(name);
 	}
 	public static void LinkEntrancefile(String datafile,String codefile,String name)
 	{
