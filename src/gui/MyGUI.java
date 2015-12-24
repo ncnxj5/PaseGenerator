@@ -2,72 +2,133 @@ package gui;
 
 import java.awt.Dimension;
 import java.awt.Label;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.ArrayList;
 
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
+import TreeGenerator.MyNewGrammar;
 import TreeGenerator.MyNewGrammarTreeConstants;
 import TreeGenerator.Node;
+import TreeGenerator.ParseException;
 import TreeGenerator.SimpleNode;
+import linker.Linker;
+import linker.Utils;
 import mytree.MyTree;
 import mytree.ExpNode;
 
 public class MyGUI {
 	
-	class GraphicTree{
-		public ArrayList<Integer>hiyWidth = new ArrayList<Integer>();
-		public int height;
-		public int maxWidth;
-		public ExpNode root;
+	public static MyFrame mJFrame = null;
+	public static Player jPlayer = null;
+	public static MyJPanel treeJpanel= null;
+	public static MyJPanel streamJpanel= null;
+	public static MyJPanel consoleJpanel= null;
+	public static MyJPanel codeJpanel= null;
+	public static JTextArea codeText = null;
+	public static JTextArea consoleText = null;
+	public static JTextArea streamText = null;
+	public static BufferedInputStream inputStream = null;
+	
+	class FileChooseAction implements ActionListener{
+		public void actionPerformed(ActionEvent event){
+			JFileChooser chooser = new JFileChooser();
+		    FileNameExtensionFilter filter = new FileNameExtensionFilter(
+		        "txt", "bom");
+		    chooser.setFileFilter(filter);
+		    int returnVal = chooser.showOpenDialog(new JPanel());
+		    if(returnVal == JFileChooser.APPROVE_OPTION) {
+		       System.out.println("你打开的文件是: " +
+		            chooser.getSelectedFile().getName());
+		       codeFile = chooser.getSelectedFile();
+		    } 
+		    else
+		    	return;
+		    Reader reader = null;
+		    StringBuffer codeString = new StringBuffer();
+	        try {
+	            reader = new InputStreamReader(new FileInputStream(codeFile));
+	            int tempchar;
+	            while ((tempchar = reader.read()) != -1) {
+	                if (((char) tempchar) != '\r') {
+	                    codeString.append((char)tempchar);
+	                }
+	            }
+	            reader.close();
+	            codeText.setText(codeString.toString());
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	        }
+		}
+	}
 
-		public GraphicTree(){
-			this.height = -1;
-			this.maxWidth = -1;
-			this.root = null;
-		}	
+	class CompilerAction implements ActionListener{
+		public void actionPerformed(ActionEvent event){
+		    try {
+		    	InputStream inputStream = Utils.getStringStream(codeText.getText()+"@BOOM!");
+		    	MyNewGrammar myNewGrammar = new MyNewGrammar(inputStream,null);
+		    	myNewGrammar.compilerCall();
+		    	consoleText.setText(Linker.console);
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 	
-	public MyTree myTree = null;
-	public ExpNode oriRoot = null;
-	public int cntTreeHir = 0;
-	public double minLocX = 0;
-	public double minSize = 1;
+	public File codeFile = null;
 	
-	public GraphicTree graphicTree = null;
+	public MyTree myTree = null;
+	public static ExpNode oriRoot = null;
+	public int cntTreeHir = 0;
+	public static double minLocX = 0;
+	public static double minSize = 1;
+	
+	public static GraphicTree graphicTree;
 	public SimpleNode mRoot = null;
-	public ArrayList<ArrayList<ExpNode>>hiyNodes = null;
+	public static ArrayList<ArrayList<ExpNode>>hiyNodes = null;
 	public ArrayList<Integer>hiyLayerWidth = new ArrayList<Integer>();
 	public String hiyLineString[] = null;
 	public String hiyConnectString[] = null;
 	public String hiyBrankString[] = null;
 	public int[] lineX;
 	public int[] lineY;
-	public ArrayList<ExpNode>rootList = new ArrayList<ExpNode>();
-	public ArrayList<ArrayList<String>> streamList = new ArrayList<ArrayList<String>>();
+	public static ArrayList<ExpNode>rootList = new ArrayList<ExpNode>();
+	public static ArrayList<ArrayList<String>> streamList = new ArrayList<ArrayList<String>>();
 	
 	public MyGUI(){
 		oriRoot = new ExpNode(0, "BOOMROOT",null,"");
 	}
-	public void addRoot(SimpleNode root){
+	public static void addRoot(SimpleNode root){
 		ExpNode cntRootExpNode = SimpleNode2ExpNode(root);
 		System.out.println(cntRootExpNode.content+" at here");
 		oriRoot.expChildren.add(cntRootExpNode);
-		this.rootList.add(cntRootExpNode);
+		rootList.add(cntRootExpNode);
 	}
 	
-	public void addStream(ArrayList<String> stream){
+	public static void addStream(ArrayList<String> stream){
 		ArrayList<String> cntStirngs = new ArrayList<String>();
 		for(int i =0;i<stream.size();i++){
 			cntStirngs.add(stream.get(i));
 			System.out.println(cntStirngs);
 		}
-		this.streamList.add(cntStirngs);
+		MyGUI.streamList.add(cntStirngs);
 	}
 	
 	double rootAlign = 0;
 	
-	public void makeGraphicTree(){
+	public static void makeGraphicTree(){
 		try{
 			setNodeAlign(graphicTree.root,0,1);
 			//LET a AS 2+3!
@@ -77,11 +138,11 @@ public class MyGUI {
 			e.printStackTrace();
 		}
 	}
-	public ExpNode getTree(){
-		return this.oriRoot;
+	public static ExpNode getTree(){
+		return MyGUI.oriRoot;
 	}
 	
-	public void setNodeAlign(ExpNode node,double leftAlign,double parentRevised){
+	public static void setNodeAlign(ExpNode node,double leftAlign,double parentRevised){
 		for(int i =0;i<node.expChildren.size();i++){
 			int cntHierarchy = node.expChildren.get(i).hierarchy;
 			int parentWidth = 1;
@@ -120,53 +181,119 @@ public class MyGUI {
 				setNodeAlign(cntNode,cntNode.locationX,revised);
 			}
 		}
+	}
+	
+	public void drawGUI(){
+		MyGUI.mJFrame = new MyFrame(700,1400);
+		mJFrame.setTitle("BOOM IT");
+		mJFrame.setLocation(10,10);
+		mJFrame.setLayout(null);
+		MyGUI.jPlayer = (Player) (mJFrame).getCurrentPanel();
 		
+		JButton comButton = new JButton("Compile!"); 
+		comButton.setLocation(240, 380);
+		comButton.setBounds(500, 210, 150, 30);
+		comButton.addActionListener(new CompilerAction());
+	    MyGUI.jPlayer.add(comButton);
+
+		JButton importButton = new JButton("choose file"); 
+		importButton.setLocation(240, 380);
+		importButton.setBounds(50, 210, 150, 30);
+		importButton.addActionListener(new FileChooseAction());
+	    MyGUI.jPlayer.add(importButton);
+	    
+	    drawConsolePanel();
+	    drawCodePanel();
+		drawStreamPanel();
+		drawTreePanel();
+		//drawTree();
+	}
+	
+	public void drawConsolePanel(){
+		MyGUI.consoleJpanel=new MyJPanel();
+		JScrollPane jjp_streamaddGrammar=new JScrollPane(MyGUI.consoleJpanel);
+		jjp_streamaddGrammar.setBounds(50, 50, 600, 150);
+		jjp_streamaddGrammar.getVerticalScrollBar().setUnitIncrement(20);
+		jjp_streamaddGrammar.getHorizontalScrollBar().setUnitIncrement(20);
+		MyGUI.consoleJpanel.setPreferredSize(new Dimension(1000,20));
+		MyGUI.consoleJpanel.setLayout(null);
+		consoleText = new JTextArea("");
+		consoleText.setBounds(0, 0, 6000,200);
+		MyGUI.consoleJpanel.add(consoleText);
+
+		MyGUI.jPlayer.add(jjp_streamaddGrammar);
+		MyGUI.jPlayer.updateUI();
+	}
+	public void drawCodePanel(){
+		MyGUI.codeJpanel=new MyJPanel();
+		JScrollPane jjp_addGrammar=new JScrollPane(MyGUI.codeJpanel);
+		jjp_addGrammar.setBounds(50, 250, 600, 400);
+		jjp_addGrammar.getVerticalScrollBar().setUnitIncrement(20);
+		MyGUI.codeJpanel.setPreferredSize(new Dimension(20*30,20*100));
+		MyGUI.codeJpanel.setLayout(null);
+		
+		codeText = new JTextArea("");
+		codeText.setBounds(0, 0, 600,2000);
+		MyGUI.codeJpanel.add(codeText);
+		MyGUI.jPlayer.add(jjp_addGrammar);
+		MyGUI.jPlayer.updateUI();
+	}
+	
+	public void drawStreamPanel(){
+		MyGUI.streamJpanel=new MyJPanel();
+		JScrollPane jjp_streamaddGrammar=new JScrollPane(MyGUI.streamJpanel);
+		jjp_streamaddGrammar.setBounds(750, 50, 600, 180);
+		jjp_streamaddGrammar.getVerticalScrollBar().setUnitIncrement(20);
+		MyGUI.streamJpanel.setPreferredSize(new Dimension(600,200));
+		MyGUI.streamJpanel.setLayout(null);
+
+		streamText = new JTextArea("");
+		streamText.setBounds(0, 0, 600,200);
+		MyGUI.streamJpanel.add(streamText);
+		MyGUI.jPlayer.add(jjp_streamaddGrammar);
+		MyGUI.jPlayer.updateUI();
+	}
+
+	public void drawTreePanel(){
+		MyGUI.treeJpanel=new MyJPanel();
+		JScrollPane jjp_addGrammar=new JScrollPane(MyGUI.treeJpanel);
+		jjp_addGrammar.setBounds(750, 250, 600, 400);
+		jjp_addGrammar.getVerticalScrollBar().setUnitIncrement(20);
+		MyGUI.treeJpanel.setPreferredSize(new Dimension(20*100*10,20*100));
+		MyGUI.treeJpanel.setLayout(null);
+
+		MyGUI.jPlayer.add(jjp_addGrammar);
+		MyGUI.jPlayer.updateUI();
 	}
 	/*
 	 * After set nodes, call function will draw a tree
 	 */
-	public void drawTree(){
-		int moveY = 50;
-		int row =graphicTree.height;
-		int col =graphicTree.maxWidth;
-		System.out.println(row+ " "+col);
+	public static void drawTree(){
+		//int row =graphicTree.height;
+		//int col =graphicTree.maxWidth;
 		//MyFrame mJFrame = new MyFrame(row*100,col*100*4);
-		MyFrame mJFrame = new MyFrame(700,700);
-		mJFrame.setLocation(200,200);
+		//Player jPlayer = (Player) (this.mJFrame).getCurrentPanel();
 		
-		mJFrame.setLayout(null);
-		Player jPlayer = (Player) mJFrame.getCurrentPanel();
-
-		MyJPanel streamjpanel=new MyJPanel();
-		JScrollPane jjp_streamaddGrammar=new JScrollPane(streamjpanel);
-		jjp_streamaddGrammar.setBounds(50, 50, 600, 200);
-		jjp_streamaddGrammar.getVerticalScrollBar().setUnitIncrement(20);
-		streamjpanel.setPreferredSize(new Dimension(10000,200));
-		streamjpanel.setLayout(null);
-		
-		MyJPanel jpanel=new MyJPanel();
-		JScrollPane jjp_addGrammar=new JScrollPane(jpanel);
-		jjp_addGrammar.setBounds(50, 250, 600, 400);
-		jjp_addGrammar.getVerticalScrollBar().setUnitIncrement(20);
-		jpanel.setPreferredSize(new Dimension(col*100*10,row*100));
-		jpanel.setLayout(null);
-
-		jPlayer.add(jjp_addGrammar);
-		jPlayer.add(jjp_streamaddGrammar);
-		jPlayer.updateUI();
-		
+		//this.jPlayer.updateUI();
+		treeJpanel.removeAll();
+		treeJpanel.removeLines();
+		MyGUI.jPlayer.updateUI();
+		drawSteam(streamJpanel);
+		drawAST(treeJpanel,(int) (5.0/minSize),50);
+	}
+	public static void drawSteam(MyJPanel streamjpanel){
 		String streamString ="STEAM IS: \n";
-		for(int i = 0; i<this.streamList.size();i++){
-			for(int j=0;j<this.streamList.get(i).size();j++){
+		for(int i = 0; i<streamList.size();i++){
+			for(int j=0;j<streamList.get(i).size();j++){
 				streamString+=(" "+streamList.get(i).get(j));
 			}
 			streamString+="\n  ";
 		}
-		JTextArea streamlabel = new JTextArea(streamString);
-		streamjpanel.add(streamlabel);
-		streamlabel.setBounds(10, 10, graphicTree.maxWidth*400,400);
-
-		int borderWidth = (int) (20.0/minSize);
+		streamText.setText(streamString);
+	}
+	
+	public static void drawAST(MyJPanel jpanel,int borderWidth, int moveY){
+		//System.out.println("yes ok");
 		for(int i =0;i<hiyNodes.size();i++){
 			for(int j=0;j<hiyNodes.get(i).size();j++){
 				ExpNode cntNode = hiyNodes.get(i).get(j);
@@ -183,7 +310,7 @@ public class MyGUI {
 		}
 	}
 	
-	public ExpNode SimpleNode2ExpNode(SimpleNode simpleRoot){
+	public static ExpNode SimpleNode2ExpNode(SimpleNode simpleRoot){
 		ExpNode rootNode = new ExpNode(1, "",oriRoot,"");
 		shiftOutput(rootNode, simpleRoot, 1, null);
 		if(rootNode.expChildren!=null){
@@ -192,14 +319,14 @@ public class MyGUI {
 		return rootNode;
 	}
 	
-	public void printNode(ExpNode node){
+	public static void printNode(ExpNode node){
 		if(node.expChildren!=null){
 			for(int i=0;i<node.expChildren.size();i++){
 				printNode(node.expChildren.get(i));
 			}
 		}
 	}
-	public void shiftOutput(ExpNode expRoot, SimpleNode node,int cntHierarchy,ExpNode parentNode){
+	public static void shiftOutput(ExpNode expRoot, SimpleNode node,int cntHierarchy,ExpNode parentNode){
 		try {
 			ExpNode cntNode = new ExpNode(cntHierarchy, MyNewGrammarTreeConstants.jjtNodeName[node.id],parentNode,node.m_Text);
 			if(parentNode!=null)
@@ -224,15 +351,16 @@ public class MyGUI {
 		}
 	}
 	//
-	public void outputTree(){
+	public static void outputTree(){
 		graphicTree = new GraphicTree();
+		graphicTree.initGraphicTree();
 		hiyNodes = new ArrayList<ArrayList<ExpNode>>();
 		graphicTree.root = oriRoot;
 		setGraphicHiy(oriRoot,0);
 		makeGraphicTree();
 	}
 	
-	public void setGraphicHiy(ExpNode node,int cntHierarchy){
+	public static void setGraphicHiy(ExpNode node,int cntHierarchy){
 		//LET a AS 1!
 		//FileWriter fileWriter;
 		try {
@@ -267,5 +395,10 @@ public class MyGUI {
 		catch (Exception e) {
 			e.printStackTrace();
 		}	
+	}
+	public static void clearAll(){
+		oriRoot = new ExpNode(0, "BOOMROOT",null,"");
+		rootList = new ArrayList<ExpNode>();
+		streamList = new ArrayList<ArrayList<String>>();
 	}
 }

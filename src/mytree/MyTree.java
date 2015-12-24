@@ -215,12 +215,6 @@ public class MyTree {
 			else threeAddCodes.add("let var boom");
 		}
 	}
-	/*整型数组情况
-	 *	考虑mov a[const] b是否可用
-	 *		可用即  以index 变量->变量
-	 *		反之     取寄存器为中间值
-	 *	
-	 */
 	public void arrayInit(ExpNode arrayNode,ExpNode termNode){
 		String arrayName = arrayNode.expChildren.get(0).mText;
 		int cntReg = 0;
@@ -228,7 +222,7 @@ public class MyTree {
 			for(int i =0;i<termNode.expChildren.size();i++){
 				cntReg = cntOrder;
 				threeAddCodes.add(get1AddCode("",termNode.expChildren.get(i).mText));
-				threeAddCodes.add(letValCode(arrayName+"["+i+"]",cntReg+""));
+				threeAddCodes.add(letValCode(arrayName+"["+i+"*4"+"]",cntReg+""));
 			}
 		}
 		else{
@@ -355,16 +349,25 @@ public class MyTree {
 				}
 			}
 			else{
-				threeAddCodes.add(letValCode("_NUM"+(i-1),cntVal));
-				argvString+=","+"_NUM"+(i-1);	
+				if(tableManager.getFuncInfo(funcName).parasType.get(i-1).equals("FLOAT")){
+					threeAddCodes.add(f_letValCode("_FLOAT"+(i-1),cntVal));
+					argvString+=","+"_FLOAT"+(i-1);
+				}
+				else{
+					threeAddCodes.add(letValCode("_NUM"+(i-1),cntVal));
+					argvString+=","+"_NUM"+(i-1);
+				}
 			}
 		}
 		threeAddCodes.add(callCode(funcName,argvString));
 		//WARNING hard code
 		//judge whether the caller should has return value
-		if(!parentVal.equals(""))
-			//threeAddCodes.add("t"+parentVal+"="+"eax");
-			threeAddCodes.add(regGeteax(parentVal));
+		if(!parentVal.equals("")){
+			if(callNode.paretNode.mText.equals("NUM"))
+				threeAddCodes.add(regGeteax(parentVal));
+			else if(callNode.paretNode.mText.equals("FLOAT"))
+				threeAddCodes.add(f_regGeteax(parentVal));
+		}
 	}
 	
 	public void retStm(ExpNode retNode){
@@ -451,57 +454,112 @@ public class MyTree {
 	}
 	public String conditionLRD(ExpNode condNode){
 		int floatFlag = 0;
+		String floatRightString = "";
 		int resVal = cntOrder;
+
 		String leftString = "";
 		String rightString = "";
 		for(int i = 0;i<condNode.expChildren.size();i++){
 			if(condNode.expChildren.get(i).content.equals("term")){
+				if(condNode.expChildren.get(i).mText.equals("FLOAT"))
+					resVal=floatOrder;
 				leftString = termLRD(condNode.expChildren.get(i));
+				if(condNode.expChildren.size()==1){
+					break;
+				}
 				if(condNode.expChildren.get(i).mText.equals("FLOAT"))
 					floatFlag=1;
-				if(leftString.equals("")){
-				}
-				else{
+				else if(condNode.expChildren.get(i+2).mText.equals("FLOAT")){
+					floatFlag=1;
+					threeAddCodes.add(num2Float(leftString));
+					leftString = floatOrder+"";
+					threeAddCodes.add(f_get1AddCode("","f_eax"));
 				}
 			}
 			else if(condNode.expChildren.get(i).content.equals("LESS")){
 				rightString = termLRD(condNode.expChildren.get(i+1)); 
 				i++;
-				//threeAddCodes.add(get3AddCode("sub",resVal,termResString));
-				//threeAddCodes.add(get3AddCode("sub",Integer.parseInt(rightString),""+resVal));
-				//move result register to eax
-				//threeAddCodes.add(regMovCode(resVal+"",rightString));
 				if(floatFlag==0)
 					compareCode(leftString,rightString,"LESS",resVal+"");
-				else
-					f_compareCode(leftString,rightString,"LESS",resVal+"");
+				else{
+					if(condNode.expChildren.get(i).mText.equals("NUM")){
+						threeAddCodes.add(num2Float(rightString));
+						floatRightString = floatOrder+"";
+						threeAddCodes.add(f_get1AddCode("","f_eax"));
+					}
+					else {
+						floatRightString = rightString;
+					}
+					f_compareCode(leftString,floatRightString+"","LESS",resVal+"");
+				}
 			}
 			else if(condNode.expChildren.get(i).content.equals("LARGER")){
 				rightString = termLRD(condNode.expChildren.get(i+1)); 
 				i++;
-				compareCode(leftString,rightString,"LARGER",resVal+"");
-				//threeAddCodes.add(get3AddCode("sub",resVal,rightString));
+				if(floatFlag==0)
+					compareCode(leftString,rightString,"LARGER",resVal+"");
+				else{
+					if(condNode.expChildren.get(i).mText.equals("NUM")){
+						threeAddCodes.add(num2Float(rightString));
+						floatRightString = floatOrder+"";
+						threeAddCodes.add(f_get1AddCode("","f_eax"));
+					}
+					else {
+						floatRightString = rightString;
+					}
+					f_compareCode(leftString,floatRightString+"","LARGER",resVal+"");
+				}
 			}
 			else if(condNode.expChildren.get(i).content.equals("EQUAL")){
 				rightString = termLRD(condNode.expChildren.get(i+1)); 
 				i++;
-				compareCode(leftString,rightString,"EQUAL",resVal+"");
-				//threeAddCodes.add(get3AddCode("sub",resVal,rightString));
+				if(floatFlag==0)
+					compareCode(leftString,rightString,"EQUAL",resVal+"");
+				else{
+					if(condNode.expChildren.get(i).mText.equals("NUM")){
+						threeAddCodes.add(num2Float(rightString));
+						floatRightString = floatOrder+"";
+						threeAddCodes.add(f_get1AddCode("","f_eax"));
+					}
+					else {
+						floatRightString = rightString;
+					}
+					f_compareCode(leftString,floatRightString+"","EQUAL",resVal+"");
+				}
 			}
 			else if(condNode.expChildren.get(i).content.equals("LE")){
 				rightString = termLRD(condNode.expChildren.get(i+1)); 
 				i++;
-				////threeAddCodes.add(get3AddCode("sub",resVal,termResString));
-				//threeAddCodes.add(get3AddCode("sub",Integer.parseInt(rightString),""+resVal));
-				//move result register to eax
-				//threeAddCodes.add(regMovCode(resVal+"",rightString));
-				compareCode(leftString,rightString,"LE",resVal+"");
+				if(floatFlag==0)
+					compareCode(leftString,rightString,"LE",resVal+"");
+				else{
+					if(condNode.expChildren.get(i).mText.equals("NUM")){
+						threeAddCodes.add(num2Float(rightString));
+						floatRightString = floatOrder+"";
+						threeAddCodes.add(f_get1AddCode("","f_eax"));
+					}
+					else {
+						floatRightString = rightString;
+					}
+					f_compareCode(leftString,floatRightString+"","LE",resVal+"");
+				}
 			}
 			else if(condNode.expChildren.get(i).content.equals("BE")){
 				rightString = termLRD(condNode.expChildren.get(i+1)); 
 				i++;
-				compareCode(leftString,rightString,"BE",resVal+"");
-				//threeAddCodes.add(get3AddCode("sub",resVal,rightString));
+				if(floatFlag==0)
+					compareCode(leftString,rightString,"BE",resVal+"");
+				else{
+					if(condNode.expChildren.get(i).mText.equals("NUM")){
+						threeAddCodes.add(num2Float(rightString));
+						floatRightString = floatOrder+"";
+						threeAddCodes.add(f_get1AddCode("","f_eax"));
+					}
+					else {
+						floatRightString = rightString;
+					}
+					f_compareCode(leftString,floatRightString+"","BE",resVal+"");
+				}
 			}
 			else{
 				threeAddCodes.add("cond fail");
@@ -562,9 +620,9 @@ public class MyTree {
 					}
 				}
 				else if(termNode.expChildren.get(i).content.equals("PLUS")){
+					int cntVal = floatOrder;
 					subtermResString = subtermLRD(termNode.expChildren.get(i+1),resVal+""); 
 					
-					int cntVal = floatOrder;
 					if(termNode.expChildren.get(i+1).mText.equals("NUM")){
 						//call type shift
 						threeAddCodes.add(num2Float(subtermResString));
@@ -573,11 +631,12 @@ public class MyTree {
 					}
 					i++; 
 					//the code should let result to the resVal
+					System.out.println("add is "+judgeReg(resVal)+judgeReg(cntVal));
 					threeAddCodes.add(f_get3AddCode("add",resVal,cntVal+""));
 				}	
 				else if(termNode.expChildren.get(i).content.equals("MINUS")){
-					subtermResString = subtermLRD(termNode.expChildren.get(i+1),resVal+"");
 					int cntVal = floatOrder;
+					subtermResString = subtermLRD(termNode.expChildren.get(i+1),resVal+"");
 					if(termNode.expChildren.get(i+1).mText.equals("NUM")){
 						//call type shift
 						threeAddCodes.add(num2Float(subtermResString));
@@ -645,8 +704,8 @@ public class MyTree {
 				if(subtermNode.expChildren.get(i).content.equals("atom")){
 					atomResString=atomLRD(subtermNode.expChildren.get(i),resVal+""); 
 					if(atomResString.charAt(atomResString.length()-1)==']'){
-						resVal = cntOrder;
-						threeAddCodes.add(get1AddCodeArray(parntVal, atomResString));
+						resVal = floatOrder;
+						threeAddCodes.add(f_get1AddCodeArray(parntVal, atomResString));
 					}
 					else if(atomResString.equals("call")){
 						;
@@ -663,12 +722,12 @@ public class MyTree {
 					}
 				}
 				else if(subtermNode.expChildren.get(i).content.equals("MULTIPLY")){
-					int cntVal = floatOrder;
 					atomResString=atomLRD(subtermNode.expChildren.get(i+1),resVal+"");
+					int cntVal = floatOrder;
 					if(subtermNode.expChildren.get(i+1).mText.equals("NUM")){
 						//call type shift
-						String shiftRes = "";
-						threeAddCodes.add(f_get1AddCode("",shiftRes));
+						threeAddCodes.add(num2Float(atomResString));
+						threeAddCodes.add(f_get1AddCode("","f_eax"));
 					} 
 					else
 						threeAddCodes.add(f_get1AddCode("",atomResString));
@@ -677,13 +736,13 @@ public class MyTree {
 					threeAddCodes.add(f_get3AddCode("imul",resVal,cntVal+""));
 				}
 				else if(subtermNode.expChildren.get(i).content.equals("DIVIDE")){
-					int cntVal = floatOrder;
 					atomResString=atomLRD(subtermNode.expChildren.get(i+1),resVal+"");
+					int cntVal = floatOrder;
 					if(subtermNode.expChildren.get(i+1).mText.equals("NUM")){
 						//call type shift
-						String shiftRes = "";
-						threeAddCodes.add(f_get1AddCode("",shiftRes));
-					} 
+						threeAddCodes.add(num2Float(atomResString));
+						threeAddCodes.add(f_get1AddCode("","f_eax"));
+					}  
 					else
 						threeAddCodes.add(f_get1AddCode("",atomResString));
 					i++;
@@ -691,12 +750,14 @@ public class MyTree {
 					threeAddCodes.add(f_get3AddCode("idiv",resVal,cntVal+""));;
 				}
 			}
+			System.out.println("here return f_"+judgeReg(resVal));
 		}
 		return resVal+"";
 	}
 	public String atomLRD(ExpNode atomNode,String parntVal){
 		String contentString = atomNode.expChildren.get(0).content;
 		if(contentString.equals("CHARACTER")||contentString.equals("NUM")||contentString.equals("FLOAT")){
+			System.out.println("here will return "+atomNode.expChildren.get(0).mText);
 			return atomNode.expChildren.get(0).mText;
 		}
 		else if(contentString.equals("VAR")){
@@ -776,23 +837,28 @@ public class MyTree {
 		else if(!valName.equals("global_float_const")){
 			resString = (valName+" "+typeString+" ");
 			for(int i=0;i<isArray-1;i++){
-				resString+="0";
+				resString+=typeInit;
 				if(i%10==0)
-					resString+="\r\n    "+"DWORD ";
+					resString+="\r\n    "+typeString+" ";
 				else
 					resString+=",";
 			}
-			resString+="0";
+			resString+=typeInit;
 		} 
 		else if(tableManager.constFloat.size()!=0){
 			String cntConst = "0.0";
 			resString = (valName+" "+typeString+" ");
-			for(int i=0;i<tableManager.constFloat.size();i++){
+			int i =0;
+			for(;i<tableManager.constFloat.size()-1;i++){
 				if(!tableManager.constFloat.get(i).equals("")){
 					cntConst = tableManager.constFloat.get(i);
 				}
 				resString+=(cntConst+",");
 			}
+			if(tableManager.constFloat.get(i)==null || tableManager.constFloat.get(i).equals(""))
+				resString+=("0.0");
+			else
+				resString+=(tableManager.constFloat.get(i));
 		} 
 		else
 			resString = " ";
@@ -823,6 +889,15 @@ public class MyTree {
 	public String funcEndCode(String funcName){
 		String resString = funcName+" endp";
 		return resString;
+	}
+	public String f_regGeteax(String resVal){
+		String whiteLine = "\n    ";
+		String regInit = "finit";
+		String regPush = "fld "+"f_eax";
+		String regPop  = "fstp "+"f_"+judgeReg(resVal);
+		//cntOrder++;
+		//return resString;
+		return regInit+whiteLine+regPush+whiteLine+regPop;
 	}
 	public String regGeteax(String resVal){
 		String resString = "T"+resVal+"=eax";
@@ -955,7 +1030,7 @@ public class MyTree {
 			return resString;
 	}
 	public String num2Float(String value){
-		return "invoke num2float,"+value;
+		return "invoke num2float,"+judgeReg(value);
 	}
 	
 	public String get1AddCode(String unusedsymbol,String value){
@@ -1052,8 +1127,13 @@ public class MyTree {
 			else{
 				int arrayReg = cntOrder;
 				arrayLocString = get1AddCode("",resVal.substring(0,resVal.indexOf('[')));
-				regString = "mov "+"DWORD "+"ptr"+"["+judgeReg(arrayReg)+"+"+judgeReg(arrayOrderNum)+"*4"+"]"+","+judgeReg(srcReg);
+				String setStackInit = "finit";
+				String setRegPush = "fld "+"f_"+judgeReg(srcReg);
+				String setArrayPop = "fstp "+"REAL8 "+"ptr"+"["+judgeReg(arrayReg)+"+"+judgeReg(arrayOrderNum)+"*8"+"]";
+				regString = setStackInit+whiteLine+setRegPush+whiteLine+setArrayPop;
 				arrayLocString = arrayLocString+"\n    ";
+				//floatOrder++;
+
 			}
 		}
 		
@@ -1104,6 +1184,47 @@ public class MyTree {
 		else
 			return (resString);
 	}
+
+	public String f_get1AddCodeArray(String resVal, String srcVal){
+		
+		int kuohao = srcVal.indexOf('[');
+		int kuohao2 = srcVal.indexOf(']');
+		String whiteLine ="\n    ";
+		String srcReg = srcVal.substring(kuohao+2,kuohao2);
+		String srcVar = srcVal.substring(0,kuohao);
+		String resString =  "T"+resVal+"="+" "+srcVal;
+		String asmString = resString;
+		String regString = "mov "+judgeReg(resVal)+","+srcVar+"["+judgeReg(srcReg)+"*4"+"]";
+		
+		String arrayLocString = "";
+		//if local
+		if(tableManager.getVar("", srcVar).isFormal==0){
+			regString = "mov "+judgeReg(resVal)+","+srcVar+"["+judgeReg(srcReg)+"*4"+"]";
+			String regInit = "finit";
+			String regPush = "fld "+""+srcVar+"["+judgeReg(srcReg)+"*8"+"]";
+			String regPop  = "fstp "+"f_"+judgeReg(srcReg);
+			regString = regInit+"\n    "+regPush+"\n    "+regPop;
+		}
+		else{
+			//WARNGING float random use
+			int arrayReg = cntOrder;	
+			arrayLocString = get1AddCode("",srcVal.substring(0,srcVal.indexOf('[')));
+			String setStackInit = "finit";
+			String setRegPush = "fld "+"REAL8 "+"ptr"+"["+judgeReg(arrayReg)+"+"+judgeReg(srcReg)+"*8"+"]";
+			String setArrayPop = "fstp "+"f_"+judgeReg(floatOrder);
+			regString = setStackInit+whiteLine+setRegPush+whiteLine+setArrayPop;
+			arrayLocString = arrayLocString+"\n    ";
+			floatOrder++;
+		}
+		
+		if(flag==1)
+			return (arrayLocString+asmString);
+		else if(flag==2)
+			return (arrayLocString+regString);
+		else
+			return (resString);
+	}
+	
 	
 	public String get2AddCode(String symbol){
 		String resString =  "T"+cntOrder+"="+" "+symbol+" "+"T"+(cntOrder+1);
@@ -1138,7 +1259,7 @@ public class MyTree {
 		String resString =  "ft"+resVal+"="+" "+symbol+" "+"ft"+succVal;
 		String asmString = symbol+" "+"ft"+resVal+","+"ft"+succVal;
 		String whiteLine = "\n    ";
-		String regString = "invoke "+"f_"+symbol+" "+"f_"+judgeReg(resVal)+","+"f_"+judgeReg(Integer.parseInt(succVal));
+		String regString = "invoke "+"f_"+symbol+","+"f_"+judgeReg(resVal)+","+"f_"+judgeReg(Integer.parseInt(succVal));
 		
 		String setEaxInit = "finit";
 		String setEaxPush = "fld "+"f_eax";
@@ -1197,16 +1318,8 @@ public class MyTree {
 	
 	public void f_compareCode(String resValOri,String srcValOri,String symbol,String resReg){
 		
-		String resVal = "";
-		String srcVal = "";
-		if(symbol.equals("LESS")||symbol.equals("LE")){
-			resVal = srcValOri;
-			srcVal = resValOri;
-		}
-		else{
-			resVal = resValOri;
-			srcVal = srcValOri;
-		}
+		String resVal = resValOri;
+		String srcVal = srcValOri;
 		//WARNING hard code push ebx
 		String regString = "";
 		regString = "invoke "+"f_"+symbol+","+"f_"+judgeReg(resVal)+","+"f_"+judgeReg(srcVal);
@@ -1257,7 +1370,6 @@ public class MyTree {
 		else if(symbol.equals("EQUAL"))
 			return "jne";
 		return "";
-	}
-	
+	}	
 }
 

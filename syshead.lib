@@ -8,7 +8,7 @@ includelib e:\masm32\lib\msvcrt.lib
 .data
 	numFmt db '%d',0
 	chaFmt db '%c',0
-	floFmt db '%f',0
+	floFmt db '%lf',0
 	spaFmt db ' ',0
 	entFmt db '---',0
 	FLOAT_TEMP dd 0

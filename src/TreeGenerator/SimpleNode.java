@@ -5,7 +5,7 @@ package TreeGenerator;
 public
 class SimpleNode implements Node {
 
-  public Node parent;
+  protected Node parent;
   public Node[] children;
   public int id;
   protected Object value;
@@ -68,9 +68,7 @@ class SimpleNode implements Node {
      out its children. */
 
   public void dump(String prefix) {
-	
     System.out.println(toString(prefix));
-    //System.out.println("["+m_Text+"]");
     if (children != null) {
       for (int i = 0; i < children.length; ++i) {
         SimpleNode n = (SimpleNode)children[i];

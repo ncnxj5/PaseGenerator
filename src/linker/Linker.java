@@ -17,6 +17,7 @@ public class Linker {
 	static String head=new String(".386 \r\n.model flat, stdcall\r\n\r\ninclude  e:\\masm32\\include\\msvcrt.inc\r\nincludelib e:\\masm32\\lib\\msvcrt.lib\r\n");
 	static String code=new String("");
 	static String tail=new String("\r\nend main\r\n");
+	static public String console=new String("");
 	/*============================================================================*
 	 * Step1:
 	 * 		Setup MASM
@@ -76,7 +77,7 @@ public class Linker {
 		            String line;  
 		            while ((line = input.readLine()) != null) {  
 		                System.out.println(line);  
-		                ret += line + "<br>";  
+		                ret += line +"\r\n";  
 		            }  
 		        } catch (IOException e) {  
 		            e.printStackTrace();  
@@ -87,12 +88,14 @@ public class Linker {
 	{
 		try {
 			//use the MASM /bin ml.exe to create OBJ file
-		executeCommond("ml /c /coff "+filename+".asm");
+			console+=executeCommond("ml /c /coff "+filename+".asm");
+			console+="[Linker]:>Write .OBJ OUT Finished!";
 		System.out.println("[Linker]:>Write .OBJ OUT Finished!");
 		} 
 		catch (Exception e) {  
             e.printStackTrace();
             System.out.println("[Linker]:>Oooops! Obj Broken -w=");
+            console+="[Linker]:>Oooops! Obj BOOMooooooOOOOOOOOOOooooooOoooooooOO! -w=";
         }  
 	}
 	private static void objLinker(String filename)
@@ -101,7 +104,8 @@ public class Linker {
 			//use the MASM /bin link.exe to create OBJ file
 			// case that using /subsystem:console
 			// but not /subsystem:windows! that will only can used by xxx.exe>out.txt
-		executeCommond("link /subsystem:console "+filename+".obj");
+			console+=executeCommond("link /subsystem:console "+filename+".obj");
+			console+="[Linker]:>Write .EXE OUT Finished! -O-";
 		System.out.println("[Linker]:>Write .EXE OUT Finished! -O-");
 		} 
 		catch (Exception e) {  
@@ -115,12 +119,14 @@ public class Linker {
 			//use the MASM /bin link.exe to create OBJ file
 			// case that using /subsystem:console
 			// but not /subsystem:windows! that will only can used by xxx.exe>out.txt
-		executeCommond("cmd /c  start "+filename+".exe");
+			console+=executeCommond("cmd /c  start "+filename+".exe");
+			console+="[Linker]:>Run "+filename+".exe";
 		System.out.println("[Linker]:>Run "+filename+".exe");
 		} 
 		catch (Exception e) {  
             e.printStackTrace();
             System.out.println("[Linker]:>Cannot Run "+filename+".exe -w=");
+            console+="[Linker]:>Cannot Run "+filename+".exe -w=";
         }  
 	}
 	public static void LinkEntrance(String data,String code,String name)

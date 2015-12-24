@@ -1,26 +1,15 @@
 package gui;
 
-import java.awt.Color;
-import java.awt.Font;
 import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.awt.geom.Line2D;
 import java.util.ArrayList;
 
-import javax.management.loading.PrivateMLet;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 
 
+@SuppressWarnings("serial")
 public class MyJPanel extends JPanel {
 //public class Player extends JScrollPane {
 	// ªÒ»°≈‰÷√
@@ -88,6 +77,9 @@ public class MyJPanel extends JPanel {
 		//this.setSize(1000, 760);
 		//this.getGraphics().drawLine(0, 0,100, 100);
   	
+	}
+	public void removeLines(){
+		this.lines= new ArrayList<MyJPanel.LinePosition>();
 	}
 
 	public void addLine(int x1,int y1,int x2,int y2){

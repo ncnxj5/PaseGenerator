@@ -25,26 +25,25 @@ public interface MyNewGrammarTreeConstants
   public int JJTDEFS = 19;
   public int JJTOBJ = 20;
   public int JJTVOID = 21;
-  public int JJTCHARACTER = 22;
-  public int JJTEXPRE = 23;
-  public int JJTAND = 24;
-  public int JJTNOT = 25;
-  public int JJTOR = 26;
-  public int JJTCOND = 27;
-  public int JJTLESS = 28;
-  public int JJTLARGER = 29;
-  public int JJTEQUAL = 30;
-  public int JJTLE = 31;
-  public int JJTBE = 32;
-  public int JJTTERM = 33;
-  public int JJTPLUS = 34;
-  public int JJTMINUS = 35;
-  public int JJTSUBTERM = 36;
-  public int JJTMULTIPLY = 37;
-  public int JJTDIVIDE = 38;
-  public int JJTATOM = 39;
-  public int JJTVAR = 40;
-  public int JJTPOINTER = 41;
+  public int JJTEXPRE = 22;
+  public int JJTAND = 23;
+  public int JJTNOT = 24;
+  public int JJTOR = 25;
+  public int JJTCOND = 26;
+  public int JJTLESS = 27;
+  public int JJTLARGER = 28;
+  public int JJTEQUAL = 29;
+  public int JJTLE = 30;
+  public int JJTBE = 31;
+  public int JJTTERM = 32;
+  public int JJTPLUS = 33;
+  public int JJTMINUS = 34;
+  public int JJTSUBTERM = 35;
+  public int JJTMULTIPLY = 36;
+  public int JJTDIVIDE = 37;
+  public int JJTATOM = 38;
+  public int JJTVAR = 39;
+  public int JJTPOINTER = 40;
 
 
   public String[] jjtNodeName = {
@@ -70,7 +69,6 @@ public interface MyNewGrammarTreeConstants
     "DEFS",
     "OBJ",
     "void",
-    "CHARACTER",
     "expre",
     "AND",
     "NOT",
@@ -92,4 +90,4 @@ public interface MyNewGrammarTreeConstants
     "pointer",
   };
 }
-/* JavaCC - OriginalChecksum=d6a8c6f3f8d71246ffbda88e6da194af (do not edit this line) */
+/* JavaCC - OriginalChecksum=5b9ed270f2a602e1806431755519f8a3 (do not edit this line) */

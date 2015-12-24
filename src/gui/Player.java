@@ -1,24 +1,12 @@
 package gui;
 
-import java.awt.Color;
-import java.awt.Font;
 import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.awt.geom.Line2D;
 import java.util.ArrayList;
 
-import javax.management.loading.PrivateMLet;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 
 
 public class Player extends JPanel {
@@ -86,14 +74,20 @@ public class Player extends JPanel {
 //			// TODO Auto-generated catch block
 //			e.printStackTrace();
 //		}
+		this.setBackground(java.awt.Color.WHITE);
 		lines = new ArrayList<LinePosition>(); 
 		initialize();
 
 	}
 
+	private Frame getContentPane() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 	private void initialize() {
 		//这里可以就是初始化这个jpanel
-		this.setSize(1000, 760);
+		this.setSize(1400, 760);
 		//this.getGraphics().drawLine(0, 0,100, 100);
   	
 	}

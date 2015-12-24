@@ -3,15 +3,14 @@ package TreeGenerator;
 
 import gui.MyGUI;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
-import mytree.MyTree;
 import STgenerator.Generator;
-import STgenerator.SymbolTable;
+import linker.Utils;
+import mytree.MyTree;
 
 public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, MyNewGrammarConstants {/*@bgen(jjtree)*/
-  protected static JJTMyNewGrammarState jjtree = new JJTMyNewGrammarState();
+  protected JJTMyNewGrammarState jjtree = new JJTMyNewGrammarState();
   public class tokenstream
   {
         public ArrayList list = new ArrayList();
@@ -19,83 +18,75 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
 
   public MyNewGrammar(){};
 
-  public static void main(String args []) throws ParseException, IOException
+  public void compilerCall() throws ParseException
   {
 
-    MyNewGrammar tmp = new MyNewGrammar();
-    tokenstream stream = tmp.new tokenstream();
-    MyNewGrammar parser = new MyNewGrammar(System.in);
-    /*
-    System.out.println("Please input your file path");
-   	BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-    String path;
-    path = br.readLine();
-    File file = new File(path);
-    MyNewGrammar parser = new MyNewGrammar(new FileInputStream(file));
-    */
-    MyGUI mygui = new MyGUI();
-    MyTree mytree = new MyTree();
-    Generator myGenerator = new Generator();
-    SimpleNode oriRoot = new SimpleNode(0);
-    while (true)
-    {
-      System.out.println("Reading from standard input...");
-      try
-      {
-        stream.list.clear();
-        SimpleNode rootNode = MyNewGrammar.one_line(stream);      
-        
-        if(stream.list.get(0).equals("@")){
-        	myGenerator.generateRoot(oriRoot);
-        	//oriRoot.dump("");
-        	myGenerator.root.print();
-        	System.out.println("here get function var list out "+"a"+" "+ myGenerator.getAllvar("a").size());
-        	//System.out.println(myGenerator.root.vars.size()+" shishsihsishihu ");
-        	mygui.addRoot(oriRoot);
-        	mytree.setTableManager(myGenerator);
-        	mytree.setRoot(mygui.getTree());
-        	mytree.tree2code();
-        	mytree.outputCodes();
-            //mygui.outputTree();
-        	System.out.println("should break");
-            break;
-        }else{
-        	oriRoot.jjtAddChild((SimpleNode)rootNode.children[0], oriRoot.jjtGetNumChildren());
-        }
-        //mygui.addRoot(rootNode);
-        //mygui.addStream(stream.list);
-        rootNode.dump("");
-        for(int i=0; i<stream.list.size()-1; ++i){
-                System.out.println(stream.list.get(i)+" ");
-        }
-      }
-      catch (Exception e)
-      {
-        System.out.println("NOK.");
-        e.printStackTrace();
-        System.out.println(e.getMessage());
-        ArrayList<String>error = new ArrayList<String>();
-        error.add(e.getMessage());
-        mygui.addStream(error);
-        MyNewGrammar.ReInit(System.in);
-      }
-      catch (Error e)
-      {
-        System.out.println("Oops.");
-        System.out.println(e.getMessage());
-        break;
-      }
-    }
+	    MyNewGrammar tmp = new MyNewGrammar();
+	    tokenstream stream = tmp.new tokenstream();
+	    //MyNewGrammar parser = new MyNewGrammar(Utils.getStringStream(codeString+"@BOOM!"));
+	    SimpleNode root = new SimpleNode(0);
+
+	    Integer stop = 0;
+	    MyTree mytree = new MyTree();
+	    Generator myGenerator = new Generator();
+	    SimpleNode oriRoot = new SimpleNode(0);
+	    while (stop.equals(0))
+	    {
+	      System.out.println("Reading from standard input...");
+	      try
+	      {
+	        stream.list.clear();
+	        SimpleNode rootNode = one_line(stream);
+	        
+	        if(stream.list.get(0).equals("@")){
+	        	myGenerator.generateRoot(oriRoot);
+	        	myGenerator.root.print();
+	        	MyGUI.addRoot(oriRoot);
+	        	MyGUI.outputTree();
+	        	mytree.setTableManager(myGenerator);
+	        	mytree.setRoot(MyGUI.getTree());
+	        	mytree.tree2code();
+	        	mytree.outputCodes();
+	        	MyGUI.clearAll();
+	            break;
+	        }
+	        else{
+	        	oriRoot.jjtAddChild((SimpleNode)rootNode.children[0], oriRoot.jjtGetNumChildren());
+	        }
+	        
+	      }
+	      catch (Exception e)
+	      {
+	    	  e.printStackTrace();
+	        System.out.println("NOK.");
+	        System.out.println(e.getMessage());
+	        ReInit(System.in);
+	      }
+	      catch (Error e)
+	      {
+	        System.out.println("Oops.");
+	        System.out.println(e.getMessage());
+	        break;
+	      }
+	    }
+	    /*
+	    System.out.println("Please input your file path");
+	   	BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+	    String path;
+	    path = br.readLine();
+	    File file = new File(path);
+	    MyNewGrammar parser = new MyNewGrammar(new FileInputStream(file));
+	    */
   }
 
-  static final public SimpleNode one_line(tokenstream stream) throws ParseException {
+  final public SimpleNode one_line(tokenstream stream) throws ParseException {
  /*@bgen(jjtree) ROOT */
   SimpleNode jjtn000 = new SimpleNode(JJTROOT);
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
     try {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-      case 43:
+      case 44:
         define(stream);
         jj_consume_token(23);
     jjtree.closeNodeScope(jjtn000, true);
@@ -111,7 +102,7 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
     stream.list.add("!");
         {if (true) return jjtn000;}
         break;
-      case 41:
+      case 42:
         let(stream);
         jj_consume_token(23);
     jjtree.closeNodeScope(jjtn000, true);
@@ -129,7 +120,7 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
     stream.list.add("!");
         {if (true) return jjtn000;}
         break;
-      case 31:
+      case 32:
         loop(stream);
         jj_consume_token(23);
     jjtree.closeNodeScope(jjtn000, true);
@@ -137,7 +128,7 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
     stream.list.add("!");
     {if (true) return jjtn000;}
         break;
-      case 32:
+      case 33:
         ret(stream);
         jj_consume_token(23);
     jjtree.closeNodeScope(jjtn000, true);
@@ -146,7 +137,7 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
     {if (true) return jjtn000;}
         break;
       case 25:
-      case 33:
+      case 34:
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
         case 25:
           jj_consume_token(25);
@@ -163,14 +154,14 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
     stream.list.add("!");
         {if (true) return jjtn000;}
         break;
-      case 34:
+      case 35:
         comment(stream);
         jj_consume_token(23);
     jjtree.closeNodeScope(jjtn000, true);
     jjtc000 = false;
         {if (true) return jjtn000;}
         break;
-      case 36:
+      case 37:
         foreach(stream);
         jj_consume_token(23);
     jjtree.closeNodeScope(jjtn000, true);
@@ -205,7 +196,7 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
     throw new Error("Missing return statement in function");
   }
 
-  static final public void body(tokenstream stream) throws ParseException {
+  final public void body(tokenstream stream) throws ParseException {
  /*@bgen(jjtree) BODY */
   SimpleNode jjtn000 = new SimpleNode(JJTBODY);
   boolean jjtc000 = true;
@@ -216,13 +207,13 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
         case SYMBOL:
         case 24:
-        case 31:
         case 32:
         case 33:
         case 34:
-        case 36:
-        case 41:
-        case 43:
+        case 35:
+        case 37:
+        case 42:
+        case 44:
           ;
           break;
         default:
@@ -237,37 +228,37 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
           jj_consume_token(23);
                                                       stream.list.add("!");
           break;
-        case 41:
+        case 42:
           let(stream);
           jj_consume_token(23);
                          stream.list.add("!");
           break;
-        case 43:
+        case 44:
           define(stream);
           jj_consume_token(23);
                             stream.list.add("!");
           break;
-        case 31:
+        case 32:
           loop(stream);
           jj_consume_token(23);
                           stream.list.add("!");
           break;
-        case 32:
+        case 33:
           ret(stream);
           jj_consume_token(23);
                          stream.list.add("!");
           break;
-        case 33:
+        case 34:
           boom(stream);
           jj_consume_token(23);
                           stream.list.add("!");
           break;
-        case 34:
+        case 35:
           comment(stream);
           jj_consume_token(23);
                              stream.list.add("!");
           break;
-        case 36:
+        case 37:
           foreach(stream);
           jj_consume_token(23);
                              stream.list.add("!");
@@ -305,13 +296,12 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
   }
 
 //correct parameter checking
-  static final public void call(tokenstream stream) throws ParseException {
+  final public void call(tokenstream stream) throws ParseException {
  /*@bgen(jjtree) CALL */
  SimpleNode jjtn000 = new SimpleNode(JJTCALL);
  boolean jjtc000 = true;
  jjtree.openNodeScope(jjtn000);Token t;
     try {
-     System.out.println(getToken(1));
       t = jj_consume_token(SYMBOL);
                   SimpleNode jjtn001 = new SimpleNode(JJTSYMBOL);
                   boolean jjtc001 = true;
@@ -319,22 +309,11 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
       try {
                   jjtree.closeNodeScope(jjtn001, true);
                   jjtc001 = false;
-                 jjtn001.setText(t.image); stream.list.add(t.image); stream.list.add("(");
+                 jjtn001.setText(t.image); stream.list.add(t.image);
       } finally {
                   if (jjtc001) {
                     jjtree.closeNodeScope(jjtn001, true);
                   }
-      }
-      jj_consume_token(B);
-      if (jj_2_1(2147483647)) {
-        jj_consume_token(27);
-      } else {
-        ;
-      }
-      if (jj_2_2(1)) {
-        term(stream);
-      } else {
-        ;
       }
       label_2:
       while (true) {
@@ -347,6 +326,43 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
           break label_2;
         }
         jj_consume_token(26);
+        t = jj_consume_token(SYMBOL);
+                  SimpleNode jjtn002 = new SimpleNode(JJTSYMBOL);
+                  boolean jjtc002 = true;
+                  jjtree.openNodeScope(jjtn002);
+        try {
+                  jjtree.closeNodeScope(jjtn002, true);
+                  jjtc002 = false;
+                 jjtn002.setText(t.image); stream.list.add(t.image); stream.list.add("->");
+        } finally {
+                  if (jjtc002) {
+                    jjtree.closeNodeScope(jjtn002, true);
+                  }
+        }
+      }
+      jj_consume_token(B);
+            stream.list.add("(");
+      if (jj_2_1(2147483647)) {
+        jj_consume_token(28);
+      } else {
+        ;
+      }
+      if (jj_2_2(1)) {
+        term(stream);
+      } else {
+        ;
+      }
+      label_3:
+      while (true) {
+        switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+        case 27:
+          ;
+          break;
+        default:
+          jj_la1[5] = jj_gen;
+          break label_3;
+        }
+        jj_consume_token(27);
               stream.list.add(",");
         term(stream);
       }
@@ -355,27 +371,27 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
                jjtc000 = false;
               stream.list.add(")");
     } catch (Throwable jjte000) {
-      if (jjtc000) {
-        jjtree.clearNodeScope(jjtn000);
-        jjtc000 = false;
-      } else {
-        jjtree.popNode();
-      }
-      if (jjte000 instanceof RuntimeException) {
-        {if (true) throw (RuntimeException)jjte000;}
-      }
-      if (jjte000 instanceof ParseException) {
-        {if (true) throw (ParseException)jjte000;}
-      }
-      {if (true) throw (Error)jjte000;}
+          if (jjtc000) {
+            jjtree.clearNodeScope(jjtn000);
+            jjtc000 = false;
+          } else {
+            jjtree.popNode();
+          }
+          if (jjte000 instanceof RuntimeException) {
+            {if (true) throw (RuntimeException)jjte000;}
+          }
+          if (jjte000 instanceof ParseException) {
+            {if (true) throw (ParseException)jjte000;}
+          }
+          {if (true) throw (Error)jjte000;}
     } finally {
-      if (jjtc000) {
-        jjtree.closeNodeScope(jjtn000, true);
-      }
+          if (jjtc000) {
+            jjtree.closeNodeScope(jjtn000, true);
+          }
     }
   }
 
-  static final public void branch(tokenstream stream) throws ParseException {
+  final public void branch(tokenstream stream) throws ParseException {
  /*@bgen(jjtree) BRANCH */
   SimpleNode jjtn000 = new SimpleNode(JJTBRANCH);
   boolean jjtc000 = true;
@@ -385,10 +401,10 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
             stream.list.add("(");
       expression(stream);
       jj_consume_token(C);
-      jj_consume_token(29);
+      jj_consume_token(30);
                stream.list.add(")");stream.list.add("{");
       body(stream);
-      jj_consume_token(30);
+      jj_consume_token(31);
           jjtree.closeNodeScope(jjtn000, true);
           jjtc000 = false;
          stream.list.add("}");
@@ -413,21 +429,21 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
     }
   }
 
-  static final public void loop(tokenstream stream) throws ParseException {
+  final public void loop(tokenstream stream) throws ParseException {
  /*@bgen(jjtree) LOOP */
   SimpleNode jjtn000 = new SimpleNode(JJTLOOP);
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
     try {
-      jj_consume_token(31);
+      jj_consume_token(32);
       jj_consume_token(B);
                   stream.list.add("LOOP");stream.list.add("(");
       expression(stream);
       jj_consume_token(C);
-      jj_consume_token(29);
+      jj_consume_token(30);
                stream.list.add(")");stream.list.add("{");
       body(stream);
-      jj_consume_token(30);
+      jj_consume_token(31);
           jjtree.closeNodeScope(jjtn000, true);
           jjtc000 = false;
          stream.list.add("}");
@@ -452,13 +468,13 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
     }
   }
 
-  static final public void ret(tokenstream stream) throws ParseException {
+  final public void ret(tokenstream stream) throws ParseException {
  /*@bgen(jjtree) RET */
   SimpleNode jjtn000 = new SimpleNode(JJTRET);
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
     try {
-      jj_consume_token(32);
+      jj_consume_token(33);
               stream.list.add("RET");
       term(stream);
     } catch (Throwable jjte000) {
@@ -482,13 +498,13 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
     }
   }
 
-  static final public void boom(tokenstream stream) throws ParseException {
+  final public void boom(tokenstream stream) throws ParseException {
  /*@bgen(jjtree) BOOM */
   SimpleNode jjtn000 = new SimpleNode(JJTBOOM);
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
     try {
-      jj_consume_token(33);
+      jj_consume_token(34);
                 jjtree.closeNodeScope(jjtn000, true);
                 jjtc000 = false;
                stream.list.add("BOOM");
@@ -499,26 +515,26 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
     }
   }
 
-  static final public void comment(tokenstream stream) throws ParseException {
+  final public void comment(tokenstream stream) throws ParseException {
  /*@bgen(jjtree) comment */
   SimpleNode jjtn000 = new SimpleNode(JJTCOMMENT);
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
     try {
-      jj_consume_token(34);
-      label_3:
+      jj_consume_token(35);
+      label_4:
       while (true) {
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
         case CHARACTER:
           ;
           break;
         default:
-          jj_la1[5] = jj_gen;
-          break label_3;
+          jj_la1[6] = jj_gen;
+          break label_4;
         }
         jj_consume_token(CHARACTER);
       }
-      jj_consume_token(35);
+      jj_consume_token(36);
     } finally {
           if (jjtc000) {
             jjtree.closeNodeScope(jjtn000, true);
@@ -526,21 +542,21 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
     }
   }
 
-  static final public void foreach(tokenstream stream) throws ParseException {
+  final public void foreach(tokenstream stream) throws ParseException {
  /*@bgen(jjtree) #FOREACH( 3) */
  SimpleNode jjtn000 = new SimpleNode(JJTFOREACH);
  boolean jjtc000 = true;
  jjtree.openNodeScope(jjtn000);Token t;
     try {
-      jj_consume_token(36);
+      jj_consume_token(37);
                   stream.list.add("FOREACH");
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-      case 37:
+      case 38:
             SimpleNode jjtn001 = new SimpleNode(JJTNUM);
             boolean jjtc001 = true;
             jjtree.openNodeScope(jjtn001);
         try {
-          jj_consume_token(37);
+          jj_consume_token(38);
         } finally {
             if (jjtc001) {
               jjtree.closeNodeScope(jjtn001, true);
@@ -548,12 +564,12 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
         }
                      stream.list.add("NUM");
         break;
-      case 38:
+      case 39:
             SimpleNode jjtn002 = new SimpleNode(JJTFLOAT);
             boolean jjtc002 = true;
             jjtree.openNodeScope(jjtn002);
         try {
-          jj_consume_token(38);
+          jj_consume_token(39);
         } finally {
             if (jjtc002) {
               jjtree.closeNodeScope(jjtn002, true);
@@ -561,12 +577,12 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
         }
                          stream.list.add("FLOAT");
         break;
-      case 39:
+      case 40:
             SimpleNode jjtn003 = new SimpleNode(JJTCHAR);
             boolean jjtc003 = true;
             jjtree.openNodeScope(jjtn003);
         try {
-          jj_consume_token(39);
+          jj_consume_token(40);
         } finally {
             if (jjtc003) {
               jjtree.closeNodeScope(jjtn003, true);
@@ -590,11 +606,11 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
         }
         break;
       default:
-        jj_la1[6] = jj_gen;
+        jj_la1[7] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
-      jj_consume_token(40);
+      jj_consume_token(41);
                SimpleNode jjtn005 = new SimpleNode(JJTSYMBOL);
                boolean jjtc005 = true;
                jjtree.openNodeScope(jjtn005);
@@ -605,9 +621,9 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
                  jjtree.closeNodeScope(jjtn005, true);
                }
       }
-      jj_consume_token(29);
-      body(stream);
       jj_consume_token(30);
+      body(stream);
+      jj_consume_token(31);
     } catch (Throwable jjte000) {
           if (jjtc000) {
             jjtree.clearNodeScope(jjtn000);
@@ -629,26 +645,26 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
     }
   }
 
-  static final public void let(tokenstream stream) throws ParseException {
+  final public void let(tokenstream stream) throws ParseException {
  /*@bgen(jjtree) LET */
   SimpleNode jjtn000 = new SimpleNode(JJTLET);
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
     try {
-      jj_consume_token(41);
+      jj_consume_token(42);
               stream.list.add("LET");
       variable(stream);
-      jj_consume_token(42);
+      jj_consume_token(43);
              stream.list.add("AS");
       if (jj_2_3(1)) {
         expression(stream);
       } else {
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-        case 29:
+        case 30:
           bulk(stream);
           break;
         default:
-          jj_la1[7] = jj_gen;
+          jj_la1[8] = jj_gen;
           jj_consume_token(-1);
           throw new ParseException();
         }
@@ -674,28 +690,28 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
     }
   }
 
-  static final public void bulk(tokenstream stream) throws ParseException {
+  final public void bulk(tokenstream stream) throws ParseException {
  /*@bgen(jjtree) BULK */
   SimpleNode jjtn000 = new SimpleNode(JJTBULK);
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
     try {
-      jj_consume_token(29);
+      jj_consume_token(30);
       BulkAcceptValue(stream);
-      label_4:
+      label_5:
       while (true) {
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-        case 26:
+        case 27:
           ;
           break;
         default:
-          jj_la1[8] = jj_gen;
-          break label_4;
+          jj_la1[9] = jj_gen;
+          break label_5;
         }
-        jj_consume_token(26);
+        jj_consume_token(27);
         BulkAcceptValue(stream);
       }
-      jj_consume_token(30);
+      jj_consume_token(31);
     } catch (Throwable jjte000) {
           if (jjtc000) {
             jjtree.clearNodeScope(jjtn000);
@@ -717,13 +733,13 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
     }
   }
 
-  static final public void define(tokenstream stream) throws ParseException {
+  final public void define(tokenstream stream) throws ParseException {
  /*@bgen(jjtree) DEF */
  SimpleNode jjtn000 = new SimpleNode(JJTDEF);
  boolean jjtc000 = true;
  jjtree.openNodeScope(jjtn000);Token t;
     try {
-      jj_consume_token(43);
+      jj_consume_token(44);
       t = jj_consume_token(SYMBOL);
                              SimpleNode jjtn001 = new SimpleNode(JJTSYMBOL);
                              boolean jjtc001 = true;
@@ -742,7 +758,7 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
         jj_consume_token(B);
               stream.list.add("(");
         if (jj_2_4(2147483647)) {
-          jj_consume_token(27);
+          jj_consume_token(28);
         } else {
           ;
         }
@@ -750,26 +766,26 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
             boolean jjtc009 = true;
             jjtree.openNodeScope(jjtn009);
         try {
-          label_5:
+          label_6:
           while (true) {
             switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
             case SYMBOL:
-            case 37:
             case 38:
             case 39:
+            case 40:
               ;
               break;
             default:
-              jj_la1[9] = jj_gen;
-              break label_5;
+              jj_la1[10] = jj_gen;
+              break label_6;
             }
                   SimpleNode jjtn008 = new SimpleNode(JJTPARA);
                   boolean jjtc008 = true;
                   jjtree.openNodeScope(jjtn008);
             try {
               switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-              case 37:
-                jj_consume_token(37);
+              case 38:
+                jj_consume_token(38);
                                 SimpleNode jjtn002 = new SimpleNode(JJTNUM);
                                 boolean jjtc002 = true;
                                 jjtree.openNodeScope(jjtn002);
@@ -783,8 +799,8 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
                                 }
                 }
                 break;
-              case 38:
-                jj_consume_token(38);
+              case 39:
+                jj_consume_token(39);
                           SimpleNode jjtn003 = new SimpleNode(JJTFLOAT);
                           boolean jjtc003 = true;
                           jjtree.openNodeScope(jjtn003);
@@ -798,8 +814,8 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
                           }
                 }
                 break;
-              case 39:
-                jj_consume_token(39);
+              case 40:
+                jj_consume_token(40);
                               SimpleNode jjtn004 = new SimpleNode(JJTCHAR);
                               boolean jjtc004 = true;
                               jjtree.openNodeScope(jjtn004);
@@ -829,13 +845,13 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
                 }
                 break;
               default:
-                jj_la1[10] = jj_gen;
+                jj_la1[11] = jj_gen;
                 jj_consume_token(-1);
                 throw new ParseException();
               }
               switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-              case 44:
-                jj_consume_token(44);
+              case 45:
+                jj_consume_token(45);
                        SimpleNode jjtn006 = new SimpleNode(JJTARRAY);
                        boolean jjtc006 = true;
                        jjtree.openNodeScope(jjtn006);
@@ -850,7 +866,7 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
                 }
                 break;
               default:
-                jj_la1[11] = jj_gen;
+                jj_la1[12] = jj_gen;
                 ;
               }
               t = jj_consume_token(SYMBOL);
@@ -868,17 +884,17 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
               }
               if (jj_2_5(2147483647) && (getToken(2).kind==C)) {
                 jj_consume_token(C);
-                jj_consume_token(27);
+                jj_consume_token(28);
               } else {
                 ;
               }
               switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-              case 26:
-                jj_consume_token(26);
+              case 27:
+                jj_consume_token(27);
                         stream.list.add(",");
                 break;
               default:
-                jj_la1[12] = jj_gen;
+                jj_la1[13] = jj_gen;
                 ;
               }
             } finally {
@@ -894,11 +910,11 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
         }
         jj_consume_token(C);
               stream.list.add(")");
-        jj_consume_token(42);
+        jj_consume_token(43);
                stream.list.add("AS");
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-        case 37:
-          jj_consume_token(37);
+        case 38:
+          jj_consume_token(38);
                         SimpleNode jjtn010 = new SimpleNode(JJTNUM);
                         boolean jjtc010 = true;
                         jjtree.openNodeScope(jjtn010);
@@ -912,8 +928,8 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
                         }
           }
           break;
-        case 38:
-          jj_consume_token(38);
+        case 39:
+          jj_consume_token(39);
                       SimpleNode jjtn011 = new SimpleNode(JJTFLOAT);
                       boolean jjtc011 = true;
                       jjtree.openNodeScope(jjtn011);
@@ -927,8 +943,8 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
                       }
           }
           break;
-        case 39:
-          jj_consume_token(39);
+        case 40:
+          jj_consume_token(40);
                           SimpleNode jjtn012 = new SimpleNode(JJTCHAR);
                           boolean jjtc012 = true;
                           jjtree.openNodeScope(jjtn012);
@@ -958,24 +974,24 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
           }
           break;
         default:
-          jj_la1[13] = jj_gen;
+          jj_la1[14] = jj_gen;
           jj_consume_token(-1);
           throw new ParseException();
         }
-        jj_consume_token(29);
+        jj_consume_token(30);
                stream.list.add("{");
         body(stream);
-        jj_consume_token(30);
+        jj_consume_token(31);
                 jjtree.closeNodeScope(jjtn000, true);
                 jjtc000 = false;
                stream.list.add("}");
         break;
-      case 42:
-        jj_consume_token(42);
+      case 43:
+        jj_consume_token(43);
                stream.list.add("AS");
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-        case 37:
-          jj_consume_token(37);
+        case 38:
+          jj_consume_token(38);
                     SimpleNode jjtn014 = new SimpleNode(JJTNUM);
                     boolean jjtc014 = true;
                     jjtree.openNodeScope(jjtn014);
@@ -989,8 +1005,8 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
                     }
           }
           break;
-        case 38:
-          jj_consume_token(38);
+        case 39:
+          jj_consume_token(39);
                       SimpleNode jjtn015 = new SimpleNode(JJTFLOAT);
                       boolean jjtc015 = true;
                       jjtree.openNodeScope(jjtn015);
@@ -1004,8 +1020,8 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
                       }
           }
           break;
-        case 39:
-          jj_consume_token(39);
+        case 40:
+          jj_consume_token(40);
                           SimpleNode jjtn016 = new SimpleNode(JJTCHAR);
                           boolean jjtc016 = true;
                           jjtree.openNodeScope(jjtn016);
@@ -1035,16 +1051,16 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
           }
           break;
         default:
-          jj_la1[14] = jj_gen;
+          jj_la1[15] = jj_gen;
           jj_consume_token(-1);
           throw new ParseException();
         }
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-        case 45:
-          jj_consume_token(45);
+        case 46:
+          jj_consume_token(46);
                 stream.list.add("[");
           term(stream);
-          jj_consume_token(46);
+          jj_consume_token(47);
                                                        SimpleNode jjtn018 = new SimpleNode(JJTARRAY);
                                                        boolean jjtc018 = true;
                                                        jjtree.openNodeScope(jjtn018);
@@ -1059,38 +1075,38 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
           }
           break;
         default:
-          jj_la1[15] = jj_gen;
-          ;
-        }
-        switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-        case 29:
-          jj_consume_token(29);
-                stream.list.add("{");
-          value(stream);
-          jj_consume_token(30);
-                                                       stream.list.add("}");
-          break;
-        default:
           jj_la1[16] = jj_gen;
           ;
         }
+        switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+        case 30:
+          jj_consume_token(30);
+                stream.list.add("{");
+          value(stream);
+          jj_consume_token(31);
+                                                       stream.list.add("}");
+          break;
+        default:
+          jj_la1[17] = jj_gen;
+          ;
+        }
         break;
-      case 29:
-        jj_consume_token(29);
+      case 30:
+        jj_consume_token(30);
               stream.list.add("{");
             SimpleNode jjtn019 = new SimpleNode(JJTDEFS);
             boolean jjtc019 = true;
             jjtree.openNodeScope(jjtn019);
         try {
-          label_6:
+          label_7:
           while (true) {
             switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-            case 43:
+            case 44:
               ;
               break;
             default:
-              jj_la1[17] = jj_gen;
-              break label_6;
+              jj_la1[18] = jj_gen;
+              break label_7;
             }
             define(stream);
             jj_consume_token(23);
@@ -1114,9 +1130,9 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
               jjtree.closeNodeScope(jjtn019, jjtree.nodeArity() > 0);
             }
         }
-        jj_consume_token(30);
-        jj_consume_token(42);
-        jj_consume_token(47);
+        jj_consume_token(31);
+        jj_consume_token(43);
+        jj_consume_token(48);
                                      SimpleNode jjtn020 = new SimpleNode(JJTOBJ);
                                      boolean jjtc020 = true;
                                      jjtree.openNodeScope(jjtn020);
@@ -1130,8 +1146,8 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
                                      }
         }
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-        case 48:
-          jj_consume_token(48);
+        case 49:
+          jj_consume_token(49);
                    stream.list.add("FROM");
           t = jj_consume_token(SYMBOL);
                                                              SimpleNode jjtn021 = new SimpleNode(JJTSYMBOL);
@@ -1148,12 +1164,12 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
           }
           break;
         default:
-          jj_la1[18] = jj_gen;
+          jj_la1[19] = jj_gen;
           ;
         }
         break;
       default:
-        jj_la1[19] = jj_gen;
+        jj_la1[20] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
@@ -1178,7 +1194,7 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
     }
   }
 
-  static final public void BulkAcceptValue(tokenstream stream) throws ParseException {
+  final public void BulkAcceptValue(tokenstream stream) throws ParseException {
  Token t;
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case NUMBER:
@@ -1245,14 +1261,14 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
         }
         break;
       default:
-        jj_la1[20] = jj_gen;
+        jj_la1[21] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
       break;
     case CHARACTER:
       t = jj_consume_token(CHARACTER);
-                     SimpleNode jjtn005 = new SimpleNode(JJTCHARACTER);
+                     SimpleNode jjtn005 = new SimpleNode(JJTCHAR);
                      boolean jjtc005 = true;
                      jjtree.openNodeScope(jjtn005);
       try {
@@ -1281,17 +1297,17 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
       }
       break;
     default:
-      jj_la1[21] = jj_gen;
+      jj_la1[22] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
   }
 
-  static final public void value(tokenstream stream) throws ParseException {
+  final public void value(tokenstream stream) throws ParseException {
  Token t;
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-    case 37:
-      jj_consume_token(37);
+    case 38:
+      jj_consume_token(38);
           SimpleNode jjtn001 = new SimpleNode(JJTNUM);
           boolean jjtc001 = true;
           jjtree.openNodeScope(jjtn001);
@@ -1305,8 +1321,8 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
           }
       }
       break;
-    case 38:
-      jj_consume_token(38);
+    case 39:
+      jj_consume_token(39);
             SimpleNode jjtn002 = new SimpleNode(JJTFLOAT);
             boolean jjtc002 = true;
             jjtree.openNodeScope(jjtn002);
@@ -1320,8 +1336,8 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
             }
       }
       break;
-    case 39:
-      jj_consume_token(39);
+    case 40:
+      jj_consume_token(40);
                 SimpleNode jjtn003 = new SimpleNode(JJTCHAR);
                 boolean jjtc003 = true;
                 jjtree.openNodeScope(jjtn003);
@@ -1351,20 +1367,20 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
       }
       break;
     default:
-      jj_la1[22] = jj_gen;
+      jj_la1[23] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
   }
 
-  static final public void expression(tokenstream stream) throws ParseException {
+  final public void expression(tokenstream stream) throws ParseException {
  /*@bgen(jjtree) expre */
   SimpleNode jjtn000 = new SimpleNode(JJTEXPRE);
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
     try {
       condition(stream);
-      label_7:
+      label_8:
       while (true) {
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
         case AND:
@@ -1373,8 +1389,8 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
           ;
           break;
         default:
-          jj_la1[23] = jj_gen;
-          break label_7;
+          jj_la1[24] = jj_gen;
+          break label_8;
         }
         expression2(stream);
       }
@@ -1399,7 +1415,7 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
     }
   }
 
-  static final public void expression2(tokenstream stream) throws ParseException {
+  final public void expression2(tokenstream stream) throws ParseException {
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case AND:
       jj_consume_token(AND);
@@ -1447,14 +1463,14 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
       }
       break;
     default:
-      jj_la1[24] = jj_gen;
+      jj_la1[25] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
     condition(stream);
   }
 
-  static final public void condition(tokenstream stream) throws ParseException {
+  final public void condition(tokenstream stream) throws ParseException {
  /*@bgen(jjtree) COND */
   SimpleNode jjtn000 = new SimpleNode(JJTCOND);
   boolean jjtc000 = true;
@@ -1544,14 +1560,14 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
           }
           break;
         default:
-          jj_la1[25] = jj_gen;
+          jj_la1[26] = jj_gen;
           jj_consume_token(-1);
           throw new ParseException();
         }
         term(stream);
         break;
       default:
-        jj_la1[26] = jj_gen;
+        jj_la1[27] = jj_gen;
         ;
       }
     } catch (Throwable jjte000) {
@@ -1575,14 +1591,14 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
     }
   }
 
-  static final public void term(tokenstream stream) throws ParseException {
+  final public void term(tokenstream stream) throws ParseException {
  /*@bgen(jjtree) term */
   SimpleNode jjtn000 = new SimpleNode(JJTTERM);
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
     try {
       subterm(stream);
-      label_8:
+      label_9:
       while (true) {
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
         case PLUS:
@@ -1590,8 +1606,8 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
           ;
           break;
         default:
-          jj_la1[27] = jj_gen;
-          break label_8;
+          jj_la1[28] = jj_gen;
+          break label_9;
         }
         term2(stream);
       }
@@ -1616,7 +1632,7 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
     }
   }
 
-  static final public void term2(tokenstream stream) throws ParseException {
+  final public void term2(tokenstream stream) throws ParseException {
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case PLUS:
       jj_consume_token(PLUS);
@@ -1649,21 +1665,21 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
       }
       break;
     default:
-      jj_la1[28] = jj_gen;
+      jj_la1[29] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
     subterm(stream);
   }
 
-  static final public void subterm(tokenstream stream) throws ParseException {
+  final public void subterm(tokenstream stream) throws ParseException {
  /*@bgen(jjtree) subterm */
   SimpleNode jjtn000 = new SimpleNode(JJTSUBTERM);
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
     try {
       atom(stream);
-      label_9:
+      label_10:
       while (true) {
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
         case MULTIPLY:
@@ -1671,8 +1687,8 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
           ;
           break;
         default:
-          jj_la1[29] = jj_gen;
-          break label_9;
+          jj_la1[30] = jj_gen;
+          break label_10;
         }
         subterm2(stream);
       }
@@ -1697,7 +1713,7 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
     }
   }
 
-  static final public void subterm2(tokenstream stream) throws ParseException {
+  final public void subterm2(tokenstream stream) throws ParseException {
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case MULTIPLY:
       jj_consume_token(MULTIPLY);
@@ -1730,14 +1746,14 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
       }
       break;
     default:
-      jj_la1[30] = jj_gen;
+      jj_la1[31] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
     atom(stream);
   }
 
-  static final public void atom(tokenstream stream) throws ParseException {
+  final public void atom(tokenstream stream) throws ParseException {
  /*@bgen(jjtree) atom */
  SimpleNode jjtn000 = new SimpleNode(JJTATOM);
  boolean jjtc000 = true;
@@ -1826,14 +1842,14 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
               }
               break;
             default:
-              jj_la1[31] = jj_gen;
+              jj_la1[32] = jj_gen;
               jj_consume_token(-1);
               throw new ParseException();
             }
             break;
           case CHARACTER:
             t = jj_consume_token(CHARACTER);
-                             SimpleNode jjtn005 = new SimpleNode(JJTCHARACTER);
+                             SimpleNode jjtn005 = new SimpleNode(JJTCHAR);
                              boolean jjtc005 = true;
                              jjtree.openNodeScope(jjtn005);
             try {
@@ -1850,13 +1866,13 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
             variable(stream);
             break;
           default:
-            jj_la1[32] = jj_gen;
+            jj_la1[33] = jj_gen;
             jj_consume_token(-1);
             throw new ParseException();
           }
           break;
         default:
-          jj_la1[33] = jj_gen;
+          jj_la1[34] = jj_gen;
           jj_consume_token(-1);
           throw new ParseException();
         }
@@ -1882,7 +1898,7 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
     }
   }
 
-  static final public void variable(tokenstream stream) throws ParseException {
+  final public void variable(tokenstream stream) throws ParseException {
  /*@bgen(jjtree) VAR */
  SimpleNode jjtn000 = new SimpleNode(JJTVAR);
  boolean jjtc000 = true;
@@ -1902,11 +1918,11 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
                           }
       }
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-      case 45:
-        jj_consume_token(45);
+      case 46:
+        jj_consume_token(46);
               stream.list.add("[");
         term(stream);
-        jj_consume_token(46);
+        jj_consume_token(47);
                                                      SimpleNode jjtn002 = new SimpleNode(JJTARRAY);
                                                      boolean jjtc002 = true;
                                                      jjtree.openNodeScope(jjtn002);
@@ -1921,18 +1937,18 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
         }
         break;
       default:
-        jj_la1[34] = jj_gen;
+        jj_la1[35] = jj_gen;
         ;
       }
-      label_10:
+      label_11:
       while (true) {
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-        case 49:
+        case 26:
           ;
           break;
         default:
-          jj_la1[35] = jj_gen;
-          break label_10;
+          jj_la1[36] = jj_gen;
+          break label_11;
         }
         symbol2(stream);
       }
@@ -1957,33 +1973,45 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
     }
   }
 
-  static final public void symbol2(tokenstream stream) throws ParseException {
+  final public void symbol2(tokenstream stream) throws ParseException {
  /*@bgen(jjtree) pointer */
  SimpleNode jjtn000 = new SimpleNode(JJTPOINTER);
  boolean jjtc000 = true;
  jjtree.openNodeScope(jjtn000);Token t;
     try {
-      jj_consume_token(49);
+      jj_consume_token(26);
                stream.list.add("->");
-      t = jj_consume_token(SYMBOL);
-                                                      SimpleNode jjtn001 = new SimpleNode(JJTSYMBOL);
-                                                      boolean jjtc001 = true;
-                                                      jjtree.openNodeScope(jjtn001);
-      try {
-                                                      jjtree.closeNodeScope(jjtn001, true);
-                                                      jjtc001 = false;
-                                                     jjtn001.setText(t.image);stream.list.add(t.image);
-      } finally {
-                                                      if (jjtc001) {
-                                                        jjtree.closeNodeScope(jjtn001, true);
-                                                      }
+      if (getToken(2).kind == B) {
+        call(stream);
+      } else {
+        switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+        case SYMBOL:
+          t = jj_consume_token(SYMBOL);
+                           SimpleNode jjtn001 = new SimpleNode(JJTSYMBOL);
+                           boolean jjtc001 = true;
+                           jjtree.openNodeScope(jjtn001);
+          try {
+                           jjtree.closeNodeScope(jjtn001, true);
+                           jjtc001 = false;
+                          jjtn001.setText(t.image);stream.list.add(t.image);
+          } finally {
+                           if (jjtc001) {
+                             jjtree.closeNodeScope(jjtn001, true);
+                           }
+          }
+          break;
+        default:
+          jj_la1[37] = jj_gen;
+          jj_consume_token(-1);
+          throw new ParseException();
+        }
       }
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-      case 45:
-        jj_consume_token(45);
+      case 46:
+        jj_consume_token(46);
                     stream.list.add("[");
         term(stream);
-        jj_consume_token(46);
+        jj_consume_token(47);
                                                            SimpleNode jjtn002 = new SimpleNode(JJTARRAY);
                                                            boolean jjtc002 = true;
                                                            jjtree.openNodeScope(jjtn002);
@@ -1998,7 +2026,7 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
         }
         break;
       default:
-        jj_la1[36] = jj_gen;
+        jj_la1[38] = jj_gen;
         ;
       }
     } catch (Throwable jjte000) {
@@ -2022,118 +2050,93 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
     }
   }
 
-  static private boolean jj_2_1(int xla) {
+  private boolean jj_2_1(int xla) {
     jj_la = xla; jj_lastpos = jj_scanpos = token;
     try { return !jj_3_1(); }
     catch(LookaheadSuccess ls) { return true; }
     finally { jj_save(0, xla); }
   }
 
-  static private boolean jj_2_2(int xla) {
+  private boolean jj_2_2(int xla) {
     jj_la = xla; jj_lastpos = jj_scanpos = token;
     try { return !jj_3_2(); }
     catch(LookaheadSuccess ls) { return true; }
     finally { jj_save(1, xla); }
   }
 
-  static private boolean jj_2_3(int xla) {
+  private boolean jj_2_3(int xla) {
     jj_la = xla; jj_lastpos = jj_scanpos = token;
     try { return !jj_3_3(); }
     catch(LookaheadSuccess ls) { return true; }
     finally { jj_save(2, xla); }
   }
 
-  static private boolean jj_2_4(int xla) {
+  private boolean jj_2_4(int xla) {
     jj_la = xla; jj_lastpos = jj_scanpos = token;
     try { return !jj_3_4(); }
     catch(LookaheadSuccess ls) { return true; }
     finally { jj_save(3, xla); }
   }
 
-  static private boolean jj_2_5(int xla) {
+  private boolean jj_2_5(int xla) {
     jj_la = xla; jj_lastpos = jj_scanpos = token;
     try { return !jj_3_5(); }
     catch(LookaheadSuccess ls) { return true; }
     finally { jj_save(4, xla); }
   }
 
-  static private boolean jj_3R_13() {
-    if (jj_3R_15()) return true;
+  private boolean jj_3R_25() {
+    if (jj_3R_26()) return true;
     return false;
   }
 
-  static private boolean jj_3_5() {
-    if (jj_scan_token(26)) return true;
-    return false;
-  }
-
-  static private boolean jj_3_3() {
-    if (jj_3R_12()) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_12() {
-    if (jj_3R_14()) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_25() {
-    if (jj_scan_token(SYMBOL)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_24() {
-    if (jj_3R_25()) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_23() {
+  private boolean jj_3R_24() {
     if (jj_scan_token(CHARACTER)) return true;
     return false;
   }
 
-  static private boolean jj_3R_11() {
-    if (jj_3R_13()) return true;
+  private boolean jj_3R_12() {
+    if (jj_3R_14()) return true;
     return false;
   }
 
-  static private boolean jj_3_1() {
-    if (jj_scan_token(26)) return true;
+  private boolean jj_3_1() {
+    if (jj_scan_token(27)) return true;
     return false;
   }
 
-  static private boolean jj_3R_22() {
+  private boolean jj_3R_23() {
     if (jj_scan_token(MINUS)) return true;
     return false;
   }
 
-  static private boolean jj_3R_21() {
+  private boolean jj_3R_22() {
     if (jj_scan_token(FLOAT)) return true;
     return false;
   }
 
-  static private boolean jj_3_4() {
-    if (jj_scan_token(26)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_20() {
+  private boolean jj_3R_21() {
     if (jj_scan_token(NUMBER)) return true;
     return false;
   }
 
-  static private boolean jj_3R_18() {
+  private boolean jj_3_4() {
+    if (jj_scan_token(27)) return true;
+    return false;
+  }
+
+  private boolean jj_3R_19() {
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3R_20()) {
-    jj_scanpos = xsp;
     if (jj_3R_21()) {
     jj_scanpos = xsp;
     if (jj_3R_22()) {
     jj_scanpos = xsp;
     if (jj_3R_23()) {
     jj_scanpos = xsp;
-    if (jj_3R_24()) return true;
+    if (jj_3R_24()) {
+    jj_scanpos = xsp;
+    if (jj_3R_25()) return true;
     }
     }
     }
@@ -2141,63 +2144,87 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
     return false;
   }
 
-  static private boolean jj_3_2() {
-    if (jj_3R_11()) return true;
+  private boolean jj_3_2() {
+    if (jj_3R_12()) return true;
     return false;
   }
 
-  static private boolean jj_3R_15() {
+  private boolean jj_3R_16() {
     Token xsp;
     xsp = jj_scanpos;
     jj_lookingAhead = true;
     jj_semLA = getToken(2).kind == B;
     jj_lookingAhead = false;
-    if (!jj_semLA || jj_3R_16()) {
+    if (!jj_semLA || jj_3R_17()) {
     jj_scanpos = xsp;
-    if (jj_3R_17()) {
+    if (jj_3R_18()) {
     jj_scanpos = xsp;
-    if (jj_3R_18()) return true;
-    }
-    }
-    return false;
-  }
-
-  static private boolean jj_3R_16() {
     if (jj_3R_19()) return true;
+    }
+    }
     return false;
   }
 
-  static private boolean jj_3R_14() {
-    if (jj_3R_11()) return true;
+  private boolean jj_3R_17() {
+    if (jj_3R_20()) return true;
     return false;
   }
 
-  static private boolean jj_3R_17() {
+  private boolean jj_3R_15() {
+    if (jj_3R_12()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_18() {
     if (jj_scan_token(B)) return true;
     return false;
   }
 
-  static private boolean jj_3R_19() {
+  private boolean jj_3R_20() {
     if (jj_scan_token(SYMBOL)) return true;
     return false;
   }
 
-  static private boolean jj_initialized_once = false;
+  private boolean jj_3R_14() {
+    if (jj_3R_16()) return true;
+    return false;
+  }
+
+  private boolean jj_3_5() {
+    if (jj_scan_token(27)) return true;
+    return false;
+  }
+
+  private boolean jj_3_3() {
+    if (jj_3R_13()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_13() {
+    if (jj_3R_15()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_26() {
+    if (jj_scan_token(SYMBOL)) return true;
+    return false;
+  }
+
   /** Generated Token Manager. */
-  static public MyNewGrammarTokenManager token_source;
-  static SimpleCharStream jj_input_stream;
+  public MyNewGrammarTokenManager token_source;
+  SimpleCharStream jj_input_stream;
   /** Current token. */
-  static public Token token;
+  public Token token;
   /** Next token. */
-  static public Token jj_nt;
-  static private int jj_ntk;
-  static private Token jj_scanpos, jj_lastpos;
-  static private int jj_la;
+  public Token jj_nt;
+  private int jj_ntk;
+  private Token jj_scanpos, jj_lastpos;
+  private int jj_la;
   /** Whether we are looking ahead. */
-  static private boolean jj_lookingAhead = false;
-  static private boolean jj_semLA;
-  static private int jj_gen;
-  static final private int[] jj_la1 = new int[37];
+  private boolean jj_lookingAhead = false;
+  private boolean jj_semLA;
+  private int jj_gen;
+  final private int[] jj_la1 = new int[39];
   static private int[] jj_la1_0;
   static private int[] jj_la1_1;
   static {
@@ -2205,14 +2232,14 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
       jj_la1_init_1();
    }
    private static void jj_la1_init_0() {
-      jj_la1_0 = new int[] {0x2000000,0x83080000,0x81080000,0x81080000,0x4000000,0x100000,0x80000,0x20000000,0x4000000,0x80000,0x80000,0x0,0x4000000,0x80000,0x80000,0x0,0x20000000,0x0,0x0,0x20400000,0x220000,0x3a0040,0x80000,0xe00,0xe00,0x1f000,0x1f000,0x60,0x60,0x180,0x180,0x220000,0x3a0040,0x7a0040,0x0,0x0,0x0,};
+      jj_la1_0 = new int[] {0x2000000,0x3080000,0x1080000,0x1080000,0x4000000,0x8000000,0x100000,0x80000,0x40000000,0x8000000,0x80000,0x80000,0x0,0x8000000,0x80000,0x80000,0x0,0x40000000,0x0,0x0,0x40400000,0x220000,0x3a0040,0x80000,0xe00,0xe00,0x1f000,0x1f000,0x60,0x60,0x180,0x180,0x220000,0x3a0040,0x7a0040,0x0,0x4000000,0x80000,0x0,};
    }
    private static void jj_la1_init_1() {
-      jj_la1_1 = new int[] {0x0,0xa17,0xa17,0xa17,0x0,0x0,0xe0,0x0,0x0,0xe0,0xe0,0x1000,0x0,0xe0,0xe0,0x2000,0x0,0x800,0x10000,0x400,0x0,0x0,0xe0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x2000,0x20000,0x2000,};
+      jj_la1_1 = new int[] {0x0,0x142f,0x142f,0x142f,0x0,0x0,0x0,0x1c0,0x0,0x0,0x1c0,0x1c0,0x2000,0x0,0x1c0,0x1c0,0x4000,0x0,0x1000,0x20000,0x800,0x0,0x0,0x1c0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x4000,0x0,0x0,0x4000,};
    }
-  static final private JJCalls[] jj_2_rtns = new JJCalls[5];
-  static private boolean jj_rescan = false;
-  static private int jj_gc = 0;
+  final private JJCalls[] jj_2_rtns = new JJCalls[5];
+  private boolean jj_rescan = false;
+  private int jj_gc = 0;
 
   /** Constructor with InputStream. */
   public MyNewGrammar(java.io.InputStream stream) {
@@ -2220,82 +2247,61 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
   }
   /** Constructor with InputStream and supplied encoding */
   public MyNewGrammar(java.io.InputStream stream, String encoding) {
-    if (jj_initialized_once) {
-      System.out.println("ERROR: Second call to constructor of static parser.  ");
-      System.out.println("       You must either use ReInit() or set the JavaCC option STATIC to false");
-      System.out.println("       during parser generation.");
-      throw new Error();
-    }
-    jj_initialized_once = true;
     try { jj_input_stream = new SimpleCharStream(stream, encoding, 1, 1); } catch(java.io.UnsupportedEncodingException e) { throw new RuntimeException(e); }
     token_source = new MyNewGrammarTokenManager(jj_input_stream);
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 37; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 39; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
   /** Reinitialise. */
-  static public void ReInit(java.io.InputStream stream) {
+  public void ReInit(java.io.InputStream stream) {
      ReInit(stream, null);
   }
   /** Reinitialise. */
-  static public void ReInit(java.io.InputStream stream, String encoding) {
+  public void ReInit(java.io.InputStream stream, String encoding) {
     try { jj_input_stream.ReInit(stream, encoding, 1, 1); } catch(java.io.UnsupportedEncodingException e) { throw new RuntimeException(e); }
     token_source.ReInit(jj_input_stream);
     token = new Token();
     jj_ntk = -1;
     jjtree.reset();
     jj_gen = 0;
-    for (int i = 0; i < 37; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 39; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
   /** Constructor. */
   public MyNewGrammar(java.io.Reader stream) {
-    if (jj_initialized_once) {
-      System.out.println("ERROR: Second call to constructor of static parser. ");
-      System.out.println("       You must either use ReInit() or set the JavaCC option STATIC to false");
-      System.out.println("       during parser generation.");
-      throw new Error();
-    }
-    jj_initialized_once = true;
     jj_input_stream = new SimpleCharStream(stream, 1, 1);
     token_source = new MyNewGrammarTokenManager(jj_input_stream);
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 37; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 39; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
   /** Reinitialise. */
-  static public void ReInit(java.io.Reader stream) {
+  public void ReInit(java.io.Reader stream) {
     jj_input_stream.ReInit(stream, 1, 1);
     token_source.ReInit(jj_input_stream);
     token = new Token();
     jj_ntk = -1;
     jjtree.reset();
     jj_gen = 0;
-    for (int i = 0; i < 37; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 39; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
   /** Constructor with generated Token Manager. */
   public MyNewGrammar(MyNewGrammarTokenManager tm) {
-    if (jj_initialized_once) {
-      System.out.println("ERROR: Second call to constructor of static parser. ");
-      System.out.println("       You must either use ReInit() or set the JavaCC option STATIC to false");
-      System.out.println("       during parser generation.");
-      throw new Error();
-    }
-    jj_initialized_once = true;
     token_source = tm;
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 37; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 39; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -2306,11 +2312,11 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
     jj_ntk = -1;
     jjtree.reset();
     jj_gen = 0;
-    for (int i = 0; i < 37; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 39; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
-  static private Token jj_consume_token(int kind) throws ParseException {
+  private Token jj_consume_token(int kind) throws ParseException {
     Token oldToken;
     if ((oldToken = token).next != null) token = token.next;
     else token = token.next = token_source.getNextToken();
@@ -2335,8 +2341,8 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
   }
 
   static private final class LookaheadSuccess extends java.lang.Error { }
-  static final private LookaheadSuccess jj_ls = new LookaheadSuccess();
-  static private boolean jj_scan_token(int kind) {
+  final private LookaheadSuccess jj_ls = new LookaheadSuccess();
+  private boolean jj_scan_token(int kind) {
     if (jj_scanpos == jj_lastpos) {
       jj_la--;
       if (jj_scanpos.next == null) {
@@ -2359,7 +2365,7 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
 
 
 /** Get the next Token. */
-  static final public Token getNextToken() {
+  final public Token getNextToken() {
     if (token.next != null) token = token.next;
     else token = token.next = token_source.getNextToken();
     jj_ntk = -1;
@@ -2368,7 +2374,7 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
   }
 
 /** Get the specific Token. */
-  static final public Token getToken(int index) {
+  final public Token getToken(int index) {
     Token t = jj_lookingAhead ? jj_scanpos : token;
     for (int i = 0; i < index; i++) {
       if (t.next != null) t = t.next;
@@ -2377,20 +2383,20 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
     return t;
   }
 
-  static private int jj_ntk() {
+  private int jj_ntk() {
     if ((jj_nt=token.next) == null)
       return (jj_ntk = (token.next=token_source.getNextToken()).kind);
     else
       return (jj_ntk = jj_nt.kind);
   }
 
-  static private java.util.List<int[]> jj_expentries = new java.util.ArrayList<int[]>();
-  static private int[] jj_expentry;
-  static private int jj_kind = -1;
-  static private int[] jj_lasttokens = new int[100];
-  static private int jj_endpos;
+  private java.util.List<int[]> jj_expentries = new java.util.ArrayList<int[]>();
+  private int[] jj_expentry;
+  private int jj_kind = -1;
+  private int[] jj_lasttokens = new int[100];
+  private int jj_endpos;
 
-  static private void jj_add_error_token(int kind, int pos) {
+  private void jj_add_error_token(int kind, int pos) {
     if (pos >= 100) return;
     if (pos == jj_endpos + 1) {
       jj_lasttokens[jj_endpos++] = kind;
@@ -2416,14 +2422,14 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
   }
 
   /** Generate ParseException. */
-  static public ParseException generateParseException() {
+  public ParseException generateParseException() {
     jj_expentries.clear();
     boolean[] la1tokens = new boolean[50];
     if (jj_kind >= 0) {
       la1tokens[jj_kind] = true;
       jj_kind = -1;
     }
-    for (int i = 0; i < 37; i++) {
+    for (int i = 0; i < 39; i++) {
       if (jj_la1[i] == jj_gen) {
         for (int j = 0; j < 32; j++) {
           if ((jj_la1_0[i] & (1<<j)) != 0) {
@@ -2453,14 +2459,14 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
   }
 
   /** Enable tracing. */
-  static final public void enable_tracing() {
+  final public void enable_tracing() {
   }
 
   /** Disable tracing. */
-  static final public void disable_tracing() {
+  final public void disable_tracing() {
   }
 
-  static private void jj_rescan_token() {
+  private void jj_rescan_token() {
     jj_rescan = true;
     for (int i = 0; i < 5; i++) {
     try {
@@ -2483,7 +2489,7 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
     jj_rescan = false;
   }
 
-  static private void jj_save(int index, int xla) {
+  private void jj_save(int index, int xla) {
     JJCalls p = jj_2_rtns[index];
     while (p.gen > jj_gen) {
       if (p.next == null) { p = p.next = new JJCalls(); break; }
