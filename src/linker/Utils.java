@@ -15,5 +15,14 @@ public class Utils {
 					}
 			}
 		return null;
-	} 
+	}
+	public static int getLineCount(String s,char c){
+
+		int index= 0;
+		int i = 0;
+		while((index=s.indexOf(c+"",index))!=-1){
+			i++;
+		}
+		return i;
+	}
 }

@@ -218,7 +218,7 @@ public class MyTree {
 	public void arrayInit(ExpNode arrayNode,ExpNode termNode){
 		String arrayName = arrayNode.expChildren.get(0).mText;
 		int cntReg = 0;
-		if(tableManager.getVar("", arrayName).type.equals("NUM")){
+		if(tableManager.getVar("", arrayName).type.equals("NUM")||tableManager.getVar("", arrayName).type.equals("CHAR")){
 			for(int i =0;i<termNode.expChildren.size();i++){
 				cntReg = cntOrder;
 				threeAddCodes.add(get1AddCode("",termNode.expChildren.get(i).mText));
@@ -871,8 +871,10 @@ public class MyTree {
 			typeString = "DWORD";
 		else if(type.equals("FLOAT"))
 			typeString = "REAL8";
-		else
+		else{
 			typeString = "shitType";
+			return "         ";
+		}
 		String resString = "";
 		if(isArray==0){
 			resString = ("LOCAL "+valName+":"+typeString);
@@ -1297,7 +1299,9 @@ public class MyTree {
 	}
 
 	public String judgeReg(String orderString){
+		try{
 		int order = Integer.parseInt(orderString);
+
 		if(order%5==0)
 			return "esi";
 		else if(order%5==1)
@@ -1311,6 +1315,11 @@ public class MyTree {
 		else {
 			return "bloody crash";
 		}
+		}
+		catch(Exception e){
+			System.out.println("shit here "+orderString);
+		}
+		return "";
 	}
 	public String cmpAsmCode(String resVal,String srcVal){
 		return "cmp "+judgeReg(resVal)+","+judgeReg(srcVal);

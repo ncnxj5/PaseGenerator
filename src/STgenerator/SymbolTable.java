@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import TreeGenerator.SimpleNode;
+
 public class SymbolTable {
 	
 	public class vsItem{
@@ -45,6 +47,21 @@ public class SymbolTable {
 		}
 	}
 	
+	public class objItem{
+		
+		public String name = "";
+		public Map<String, String> eleVars = new HashMap<String, String>();
+		public Map<String, Integer> isEleArray = new HashMap<String, Integer>();
+		public Map<String, SimpleNode> eleFunc = new HashMap<String, SimpleNode>();
+		
+		public String addVar(String name, String type, Integer isArray){
+			eleVars.put(name, type);
+			isEleArray.put(name, isArray);
+			return "1";
+		}
+		
+	}
+	
 	public void AddEvar(String name){
 		vars.put(name, new vsItem());
 		vars.get(name).name = name;
@@ -55,9 +72,15 @@ public class SymbolTable {
 		funcs.get(name).name = name;
 	}
 	
+	public void AddEobj(String name){
+		objs.put(name, new objItem());
+		objs.get(name).name = name;
+	}
+	
 	public Integer base;
 	public Map<String, vsItem> vars = new HashMap<String, vsItem>();
 	public Map<String, fsItem> funcs = new HashMap<String, fsItem>();
+	public Map<String, objItem> objs = new HashMap<String, objItem>();
 	public ArrayList children = new ArrayList();
 	public Integer body;
 	public SymbolTable parent;
@@ -79,6 +102,7 @@ public class SymbolTable {
 			vsItem tmp = vars.get(key);
 			System.out.println(tmp.name+" "+tmp.type+" "+tmp.isArray+" "+tmp.isFormal);
 		}
+		
 		System.out.println("funcs:");
 		for(String key: funcs.keySet()){
 			fsItem tmp = funcs.get(key);
@@ -89,6 +113,21 @@ public class SymbolTable {
 			}
 			System.out.println();
 		}
+		
+		System.out.println("objs:");
+		for(String key: objs.keySet()){
+			objItem tmp = objs.get(key);
+			System.out.println(tmp.name+":");
+			for(String key2: tmp.eleVars.keySet()){
+				System.out.print(key2+" "+tmp.eleVars.get(key2)+" "+tmp.isEleArray.get(key2)+";");
+			}
+			System.out.println();
+			for(String key2: tmp.eleFunc.keySet()){
+				System.out.print(key2+" ");
+			}
+			System.out.println();
+		}
+		
 		for(Integer i=0; i<children.size(); ++i){
 			System.out.println("child:"+((SymbolTable)(children.get(i))).body.toString());
 		}

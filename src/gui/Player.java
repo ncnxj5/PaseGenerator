@@ -74,7 +74,7 @@ public class Player extends JPanel {
 //			// TODO Auto-generated catch block
 //			e.printStackTrace();
 //		}
-		this.setBackground(java.awt.Color.WHITE);
+		this.setBackground(new java.awt.Color(0x2d2d2d));
 		lines = new ArrayList<LinePosition>(); 
 		initialize();
 

@@ -5,7 +5,7 @@ package TreeGenerator;
 public
 class SimpleNode implements Node {
 
-  protected Node parent;
+  public Node parent;
   public Node[] children;
   public int id;
   protected Object value;
@@ -24,6 +24,22 @@ class SimpleNode implements Node {
     parser = p;
   }
 
+  public SimpleNode(SimpleNode copy){
+	
+	  if(copy.children!=null){
+		  children = new Node[copy.jjtGetNumChildren()];
+		  for(int i=0; i<copy.children.length; ++i){
+			  SimpleNode child = new SimpleNode((SimpleNode)copy.jjtGetChild(i));
+			  child.parent = this;
+			  children[i] = child;
+	  	  }
+	  }
+	  id = copy.id;
+	  value = copy.value;
+	  m_Text = copy.m_Text;
+	  
+  }
+  
   public void jjtOpen() {
   }
 
@@ -69,6 +85,7 @@ class SimpleNode implements Node {
 
   public void dump(String prefix) {
     System.out.println(toString(prefix));
+    System.out.println("["+m_Text+"]");
     if (children != null) {
       for (int i = 0; i < children.length; ++i) {
         SimpleNode n = (SimpleNode)children[i];

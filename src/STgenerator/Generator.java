@@ -1,8 +1,11 @@
 package STgenerator;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import STgenerator.SymbolTable.fsItem;
+import STgenerator.SymbolTable.objItem;
 import STgenerator.SymbolTable.vsItem;
 import TreeGenerator.*;
 
@@ -29,16 +32,16 @@ public class Generator {
 		root.AddEfunc("printflo");
 		root.funcs.get("printflo").type = "NUM";
 		root.funcs.get("printflo").addPara("f1", "FLOAT", 0);
-		
-		root.AddEfunc("printspace");
-		root.funcs.get("printspace").type = "NUM";
-		
+
 		root.AddEfunc("inputnum");
 		root.funcs.get("inputnum").type = "CHAR";
 		root.AddEfunc("inputcha");
 		root.funcs.get("inputcha").type = "NUM";
 		root.AddEfunc("inputflo");
 		root.funcs.get("inputflo").type = "FLOAT";
+		
+		root.AddEfunc("printspace");
+		root.funcs.get("printspace").type = "NUM";
 		
 		root.AddEfunc("fadd");
 		root.funcs.get("fadd").type = "NUM";
@@ -69,13 +72,21 @@ public class Generator {
 	}
 	
 	//this should search tree alone and must initialize constFloat
+	//plus turn char to num here
 	private String addConstFloat(SimpleNode startNode){
 		
-		if(MyNewGrammarTreeConstants.jjtNodeName[startNode.id].equals("FLOAT")){
+		if(MyNewGrammarTreeConstants.jjtNodeName[startNode.id].equals("FLOAT") && !startNode.m_Text.equals("")){
 			String tmp = startNode.m_Text;
 			startNode.m_Text = ((Integer)constFloat.size()).toString();
 			constFloat.add(tmp);
 		}
+		
+		if(MyNewGrammarTreeConstants.jjtNodeName[startNode.id].equals("CHAR") && !startNode.m_Text.equals("")){
+			String tmp = startNode.m_Text;
+			Integer midValue = (int) tmp.charAt(1);
+			startNode.m_Text = midValue.toString();
+		}
+		
 		for(int i=0; i<startNode.jjtGetNumChildren(); ++i){
 			addConstFloat((SimpleNode)startNode.jjtGetChild(i));
 		}
@@ -125,7 +136,49 @@ public class Generator {
 		return result;
 	}
 	
-	public SymbolTable generate(SimpleNode root, Integer base, SymbolTable papa, ArrayList<vsItem> FormalVar){
+	private String turnComCall(SimpleNode comCall, SymbolTable st){
+		
+		for(Integer i=1; i<comCall.jjtGetNumChildren(); ++i){
+			SimpleNode tmp = (SimpleNode)comCall.jjtGetChild(i);
+			if(MyNewGrammarTreeConstants.jjtNodeName[tmp.id].equals("term")){
+				tmp = (SimpleNode)comCall.jjtGetChild(i-2);
+				String objType;
+				if(root.objs.containsKey(tmp.m_Text)){
+					objType = tmp.m_Text; 
+				}else{
+					objType = locateVar(tmp.m_Text, st).type;
+				}
+				tmp.m_Text = objType+"_"+((SimpleNode)comCall.jjtGetChild(i-1)).m_Text;
+				Node[] newchildren = new Node[comCall.jjtGetNumChildren()-i+1];
+				newchildren[0] = tmp;
+				int p = 1;
+				for(int j=i.intValue(); j<comCall.jjtGetNumChildren(); ++j){
+					newchildren[p] = comCall.jjtGetChild(j);
+					p++;
+				}
+				comCall.children = newchildren;
+				return "1";
+			}
+		}
+		
+		Integer i = comCall.jjtGetNumChildren()-1;
+		SimpleNode tmp = (SimpleNode)comCall.jjtGetChild(i);
+		tmp = (SimpleNode)comCall.jjtGetChild(i-1);
+		String objType;
+		if(root.objs.containsKey(tmp.m_Text)){
+			objType = tmp.m_Text; 
+		}else{
+			objType = locateVar(tmp.m_Text, st).type;
+		}
+		tmp.m_Text = objType+"_"+((SimpleNode)comCall.jjtGetChild(i)).m_Text;
+		Node[] newchildren = new Node[comCall.jjtGetNumChildren()-i+1];
+		newchildren[0] = tmp;
+		comCall.children = newchildren;
+		
+		return "1";
+	}
+	
+	public SymbolTable generate(SimpleNode root, Integer base, SymbolTable papa, ArrayList<vsItem> FormalVar) throws Exception{
 		
 		Integer tmp_body = new Integer(current_body.intValue());
 		SymbolTable result = new SymbolTable(base, tmp_body);
@@ -157,64 +210,105 @@ public class Generator {
 			case "DEF": 
 				tc = (SimpleNode)(t.jjtGetChild(t.jjtGetNumChildren()-1));
 				if((!MyNewGrammarTreeConstants.jjtNodeName[tc.id].equals("OBJ")) && (!MyNewGrammarTreeConstants.jjtNodeName[tc.id].equals("BODY"))){			
-					tc = (SimpleNode)(t.jjtGetChild(0));
-					tc.m_Text = tc.m_Text+"_"+result.body.toString();
-					
-					if(result.vars.containsKey(tc.m_Text)){
-						//throw fault(duplicate var name)
-					}
-					
-					result.AddEvar(tc.m_Text);
-					vsItem var = (vsItem)(result.vars.get(tc.m_Text));
-					var.type = MyNewGrammarTreeConstants.jjtNodeName[((SimpleNode)(t.jjtGetChild(t.jjtGetNumChildren()-1))).id];
-					if(t.jjtGetNumChildren()>2){
-						var.type = MyNewGrammarTreeConstants.jjtNodeName[((SimpleNode)(t.jjtGetChild(t.jjtGetNumChildren()-2))).id];
-						var.loc = current_loc;
-						SimpleNode term = (SimpleNode)((SimpleNode)(t.jjtGetChild(2))).jjtGetChild(0);
-						var.isArray = compute_term(term);
-						current_loc += 4*compute_term(term);
+					tc = (SimpleNode)(t.jjtGetChild(t.jjtGetNumChildren()-1));
+					if(MyNewGrammarTreeConstants.jjtNodeName[tc.id].equals("SYMBOL")){
+						
+						if(t.jjtGetNumChildren()>2){
+							Exception e = new Exception(tc.m_Text+":Can not define object array");
+							throw e;
+							//throw fault(can not be obj array)
+						}
+						if(!this.root.objs.containsKey(tc.m_Text)){
+							Exception e = new Exception(tc.m_Text+":not defined boject");
+							throw e;
+							//throw fault(not defined obj)
+						}
+						
+						vsItem var;
+						unpackedObj pack = unpackObj(((SimpleNode)t.jjtGetChild(0)).m_Text, tc.m_Text);
+						for(String key:pack.eleVars.keySet()){
+							String name = key + "_" +result.body.toString();
+							result.AddEvar(name);
+							var = result.vars.get(name);
+							if(!pack.isEleArray.get(key).equals(0)){
+								var.type = pack.eleVars.get(key);
+								var.loc = current_loc;
+								var.isArray = pack.isEleArray.get(key);
+								current_loc += 4*var.isArray;
+							}else{
+								var.type = pack.eleVars.get(key);
+								var.isArray = 0;
+								var.loc = current_loc;
+								current_loc += 4;
+							}
+						}
+						
+						tc = (SimpleNode)(t.jjtGetChild(0));
+						tc.m_Text = tc.m_Text+"_"+result.body.toString();
+						if(result.vars.containsKey(tc.m_Text)){
+							Exception e = new Exception(tc.m_Text+":Duplic variable");
+							throw e;
+							//throw fault(duplicate var name)
+						}
+						
+						result.AddEvar(tc.m_Text);
+						var = (vsItem)(result.vars.get(tc.m_Text));
+						var.type = ((SimpleNode)(t.jjtGetChild(t.jjtGetNumChildren()-1))).m_Text;
+						var.loc = -1;
+						
 					}else{
-						var.type = MyNewGrammarTreeConstants.jjtNodeName[((SimpleNode)(t.jjtGetChild(t.jjtGetNumChildren()-1))).id];
-						var.isArray = 0;
-						var.loc = current_loc;
-						current_loc += 4;
+						tc = (SimpleNode)(t.jjtGetChild(0));
+						tc.m_Text = tc.m_Text+"_"+result.body.toString();
+						if(result.vars.containsKey(tc.m_Text)){
+							Exception e = new Exception(tc.m_Text+":Duplic variable");
+							throw e;
+							//throw fault(duplicate var name)
+						}
+						
+						result.AddEvar(tc.m_Text);
+						vsItem var = (vsItem)(result.vars.get(tc.m_Text));
+						if(t.jjtGetNumChildren()>2){
+							var.type = MyNewGrammarTreeConstants.jjtNodeName[((SimpleNode)(t.jjtGetChild(t.jjtGetNumChildren()-2))).id];
+							var.loc = current_loc;
+							SimpleNode term = (SimpleNode)((SimpleNode)(t.jjtGetChild(2))).jjtGetChild(0);
+							var.isArray = compute_term(term);
+							current_loc += 4*compute_term(term);
+						}else{
+							var.type = MyNewGrammarTreeConstants.jjtNodeName[((SimpleNode)(t.jjtGetChild(t.jjtGetNumChildren()-1))).id];
+							var.isArray = 0;
+							var.loc = current_loc;
+							current_loc += 4;
+						}
 					}
 				}else{
+					Exception e = new Exception(((SimpleNode)t.jjtGetChild(0)).m_Text+":Function and object can only be defined globally");
+					throw e;
 					//throw fault(func and obj definition can only be global)
 				}
 				break;
+				
+				
 			case "CALL":
-				accept = emCall(t,allType,result);
-				if(!accept.equals("1")){
-					//throw fault(not defined function or not defined var or not match paraType)
+				if(t.jjtGetNumChildren()>1 && !MyNewGrammarTreeConstants.jjtNodeName[((SimpleNode)t.jjtGetChild(1)).id].equals("term")){
+					turnComCall(t, result);
 				}
+				emCall(t,allType,result);
 				break;
 			case "RET":
-				accept = emExpre((SimpleNode)(t.jjtGetChild(0)), allType, result);
-				if(!accept.equals("1")){
-					//throw fault(not define var or not match type var);
-				}
+				emExpre((SimpleNode)(t.jjtGetChild(0)), allType, result, 0);
 				break;
 			case "LET":
-				accept = emExpre((SimpleNode)(t.jjtGetChild(0)), allType, result);
-				if(!accept.equals("1")){
-					//throw fault(not define var or not match type var);
-				}
+				emExpre((SimpleNode)(t.jjtGetChild(0)), allType, result, 1);
 				if(MyNewGrammarTreeConstants.jjtNodeName[((SimpleNode)(t.jjtGetChild(1))).id].equals("BULK")){
-					accept = emBulk((SimpleNode)(t.jjtGetChild(1)), result);
+					emBulk((SimpleNode)(t.jjtGetChild(1)), result);
 				}else{
-					accept = emExpre((SimpleNode)(t.jjtGetChild(1)), allType, result);
+					emExpre((SimpleNode)(t.jjtGetChild(1)), allType, result, 0);
 				}
-				if(!accept.equals("1")){
-					//throw fault(not define var or not match type var);
-				}
+
 				break;
 			case "LOOP":
 			case "BRANCH":
-				accept = emExpre((SimpleNode)(t.jjtGetChild(0)), allType, result);
-				if(!accept.equals("1")){
-					//throw fault(not define var of not match type var);
-				}
+				emExpre((SimpleNode)(t.jjtGetChild(0)), allType, result, 0);
 				tc = (SimpleNode)(t.jjtGetChild(1));
 				current_body += 1;
 				tc.m_Text = current_body.toString();
@@ -232,7 +326,7 @@ public class Generator {
 		return result;
 	}
 	
-	public SymbolTable generateRoot(SimpleNode root){
+	public SymbolTable generateRoot(SimpleNode root) throws Exception{
 		
 		SymbolTable result = new SymbolTable(0, 0);   //initiate body number of root as 0
 		this.root = result;
@@ -253,51 +347,162 @@ public class Generator {
 			if(MyNewGrammarTreeConstants.jjtNodeName[t.id].equals("DEF")){			
 				tc = (SimpleNode)(t.jjtGetChild(t.jjtGetNumChildren()-1));
 				if((!MyNewGrammarTreeConstants.jjtNodeName[tc.id].equals("OBJ")) && (!MyNewGrammarTreeConstants.jjtNodeName[tc.id].equals("BODY"))){			
-					tc = (SimpleNode)(t.jjtGetChild(0));
-					tc.m_Text = tc.m_Text+"_"+result.body.toString();
-					if(result.vars.containsKey(tc.m_Text)){
-						//throw fault(duplicate var name)
+					tc = (SimpleNode)(t.jjtGetChild(1));
+					if(MyNewGrammarTreeConstants.jjtNodeName[tc.id].equals("SYMBOL")){
+						
+						if(t.jjtGetNumChildren()>2){
+							Exception e = new Exception(tc.m_Text+":Can not define object array");
+							throw e;
+							//throw fault(can not be obj array)
+						}
+						if(!this.root.objs.containsKey(tc.m_Text)){
+							Exception e = new Exception(tc.m_Text+":not defined boject");
+							throw e;
+							//throw fault(not defined obj)
+						}
+						
+						vsItem var;
+						unpackedObj pack = unpackObj(((SimpleNode)t.jjtGetChild(0)).m_Text, tc.m_Text);
+						for(String key:pack.eleVars.keySet()){
+							String name = key + "_" +result.body.toString();
+							result.AddEvar(name);
+							var = result.vars.get(name);
+							if(!pack.isEleArray.get(key).equals(0)){
+								var.type = pack.eleVars.get(key);
+								var.loc = current_loc;
+								var.isArray = pack.isEleArray.get(key);
+								current_loc += 4*var.isArray;
+							}else{
+								var.type = pack.eleVars.get(key);
+								var.isArray = 0;
+								var.loc = current_loc;
+								current_loc += 4;
+							}
+						}
+						
+						tc = (SimpleNode)(t.jjtGetChild(0));
+						tc.m_Text = tc.m_Text+"_"+result.body.toString();
+						if(result.vars.containsKey(tc.m_Text)){
+							Exception e = new Exception(tc.m_Text+":Duplic variable");
+							throw e;
+							//throw fault(duplicate var name)
+						}
+						
+						result.AddEvar(tc.m_Text);
+						var = (vsItem)(result.vars.get(tc.m_Text));
+						var.type = ((SimpleNode)(t.jjtGetChild(t.jjtGetNumChildren()-1))).m_Text;
+						var.loc = -1;
+						
+					}else{
+						tc = (SimpleNode)(t.jjtGetChild(0));
+						tc.m_Text = tc.m_Text+"_"+result.body.toString();
+						if(result.vars.containsKey(tc.m_Text)){
+							Exception e = new Exception(tc.m_Text+":Duplic variable");
+							throw e;
+							//throw fault(duplicate var name)
+						}
+						
+						result.AddEvar(tc.m_Text);
+						vsItem var = (vsItem)(result.vars.get(tc.m_Text));
+						if(t.jjtGetNumChildren()>2){
+							var.type = MyNewGrammarTreeConstants.jjtNodeName[((SimpleNode)(t.jjtGetChild(t.jjtGetNumChildren()-2))).id];
+							var.loc = current_loc;
+							SimpleNode term = (SimpleNode)((SimpleNode)(t.jjtGetChild(2))).jjtGetChild(0);
+							var.isArray = compute_term(term);
+							current_loc += 4*compute_term(term);
+						}else{
+							var.type = MyNewGrammarTreeConstants.jjtNodeName[((SimpleNode)(t.jjtGetChild(t.jjtGetNumChildren()-1))).id];
+							var.isArray = 0;
+							var.loc = current_loc;
+							current_loc += 4;
+						}
 					}
 					
-					result.AddEvar(tc.m_Text);
-					vsItem var = (vsItem)(result.vars.get(tc.m_Text));
-					if(t.jjtGetNumChildren()>2){
-						var.type = MyNewGrammarTreeConstants.jjtNodeName[((SimpleNode)(t.jjtGetChild(t.jjtGetNumChildren()-2))).id];
-						var.loc = current_loc;
-						SimpleNode term = (SimpleNode)((SimpleNode)(t.jjtGetChild(2))).jjtGetChild(0);
-						var.isArray = compute_term(term);
-						current_loc += 4*compute_term(term);
-					}else{
-						var.type = MyNewGrammarTreeConstants.jjtNodeName[((SimpleNode)(t.jjtGetChild(t.jjtGetNumChildren()-1))).id];
-						var.isArray = 0;
-						var.loc = current_loc;
-						current_loc += 4;
-					}
 				}else{
-					//NOT consider object yet
-					tmp_body ++;
-					tc = (SimpleNode)(t.jjtGetChild(0));
-					result.AddEfunc(tc.m_Text);
-					fsItem func = (fsItem)(result.funcs.get(tc.m_Text));
-					funcName.add(tc.m_Text);
-					tc = (SimpleNode)(t.jjtGetChild(1));
-					if(MyNewGrammarTreeConstants.jjtNodeName[tc.id].equals("PARAS")){
-						for(int i=0; i<tc.jjtGetNumChildren(); ++i){
-							SimpleNode tmp = (SimpleNode)(tc.jjtGetChild(i));
-							if(MyNewGrammarTreeConstants.jjtNodeName[((SimpleNode)(tmp.jjtGetChild(1))).id].equals("ARRAY")){
-								func.addPara(((SimpleNode)(tmp.jjtGetChild(2))).m_Text, MyNewGrammarTreeConstants.jjtNodeName[((SimpleNode)(tmp.jjtGetChild(0))).id], 1);
-							}else{
-								func.addPara(((SimpleNode)(tmp.jjtGetChild(1))).m_Text, MyNewGrammarTreeConstants.jjtNodeName[((SimpleNode)(tmp.jjtGetChild(0))).id], 0);
+					if(MyNewGrammarTreeConstants.jjtNodeName[tc.id].equals("BODY")){
+						tmp_body ++;
+						tc = (SimpleNode)(t.jjtGetChild(0));
+						if(result.funcs.containsKey(tc.m_Text)){
+							Exception e = new Exception(tc.m_Text+":Duplic function");
+							throw e;
+							//throw fault(duplic func)
+						}
+						result.AddEfunc(tc.m_Text);
+						fsItem func = (fsItem)(result.funcs.get(tc.m_Text));
+						funcName.add(tc.m_Text);
+						tc = (SimpleNode)(t.jjtGetChild(1));
+						if(MyNewGrammarTreeConstants.jjtNodeName[tc.id].equals("PARAS")){
+							for(int i=0; i<tc.jjtGetNumChildren(); ++i){
+								SimpleNode tmp = (SimpleNode)(tc.jjtGetChild(i));
+								if(MyNewGrammarTreeConstants.jjtNodeName[((SimpleNode)(tmp.jjtGetChild(1))).id].equals("ARRAY")){
+									func.addPara(((SimpleNode)(tmp.jjtGetChild(2))).m_Text, MyNewGrammarTreeConstants.jjtNodeName[((SimpleNode)(tmp.jjtGetChild(0))).id], 1);
+								}else{
+									func.addPara(((SimpleNode)(tmp.jjtGetChild(1))).m_Text, MyNewGrammarTreeConstants.jjtNodeName[((SimpleNode)(tmp.jjtGetChild(0))).id], 0);
+								}
+							}			
+							func.type = MyNewGrammarTreeConstants.jjtNodeName[((SimpleNode)(t.jjtGetChild(2))).id];					
+						}else{						
+							func.type = MyNewGrammarTreeConstants.jjtNodeName[tc.id];
+						}
+				 		tc = (SimpleNode)(t.jjtGetChild(t.jjtGetNumChildren()-1));					
+						bodys.add(tc);
+					}else{
+						tc = (SimpleNode)(t.jjtGetChild(0));
+						if(result.objs.containsKey(tc.m_Text)){
+							Exception e = new Exception(tc.m_Text+":Duplic object");
+							throw e;
+							//throw fault(duplic obj)
+						}
+						result.AddEobj(tc.m_Text);
+						objItem obj = (objItem)(result.objs.get(tc.m_Text));
+						tc = (SimpleNode)t.jjtGetChild(1);
+						if(MyNewGrammarTreeConstants.jjtNodeName[tc.id].equals("DEFS")){
+							for(int i=0; i<tc.jjtGetNumChildren(); ++i){
+								SimpleNode defTmp = (SimpleNode)tc.jjtGetChild(i);
+								if(!MyNewGrammarTreeConstants.jjtNodeName[((SimpleNode)defTmp.jjtGetChild(defTmp.jjtGetNumChildren()-1)).id].equals("BODY")){
+									if(defTmp.jjtGetNumChildren()>2){
+										String type = MyNewGrammarTreeConstants.jjtNodeName[((SimpleNode)defTmp.jjtGetChild(1)).id];
+										if(type.equals("NUM") || type.equals("CHAR") || type.equals("FLOAT")){
+											obj.addVar(((SimpleNode)defTmp.jjtGetChild(0)).m_Text, type, compute_term((SimpleNode)((SimpleNode)defTmp.jjtGetChild(2))));
+										}else{
+											Exception e = new Exception(tc.m_Text+":Can not define object array");
+											throw e;
+											//throw fault(no obj array)
+										}
+									}else{
+										String type = MyNewGrammarTreeConstants.jjtNodeName[((SimpleNode)defTmp.jjtGetChild(1)).id];
+										if(type.equals("NUM") || type.equals("CHAR") || type.equals("FLOAT")){
+											obj.addVar(((SimpleNode)defTmp.jjtGetChild(0)).m_Text, type, 0);
+										}else{
+											type = ((SimpleNode)defTmp.jjtGetChild(1)).m_Text;
+											if(!this.root.objs.containsKey(type)){
+												Exception e = new Exception(((SimpleNode)defTmp.jjtGetChild(1)).m_Text+":Not defined object");
+												throw e;
+												//throw fault(not defined obj)
+											}
+										}
+										
+									}
+								}else{
+									if(!MyNewGrammarTreeConstants.jjtNodeName[((SimpleNode)defTmp.jjtGetChild(defTmp.jjtGetNumChildren()-1)).id].equals("OBJ")){
+										obj.eleFunc.put(((SimpleNode)defTmp.jjtGetChild(0)).m_Text, defTmp);
+										SimpleNode funcdef = new SimpleNode(defTmp);
+										funcdef.parent = root;
+										((SimpleNode)funcdef.jjtGetChild(0)).m_Text = ((SimpleNode)t.jjtGetChild(0)).m_Text+"_"+((SimpleNode)funcdef.jjtGetChild(0)).m_Text;
+										root.jjtAddChild(funcdef, root.jjtGetNumChildren());
+									}else{
+										Exception e = new Exception(((SimpleNode)defTmp.jjtGetChild(0)).m_Text+":Can not define object in object");
+										throw e;
+										//throw fault(no obj in obj)
+									}
+								}
 							}
-						}			
-						func.type = MyNewGrammarTreeConstants.jjtNodeName[((SimpleNode)(t.jjtGetChild(2))).id];					
-					}else{						
-						func.type = MyNewGrammarTreeConstants.jjtNodeName[tc.id];
+						}
 					}
-					tc = (SimpleNode)(t.jjtGetChild(t.jjtGetNumChildren()-1));					
-					bodys.add(tc);
 				}			
 			}else{
+				Exception e = new Exception(MyNewGrammarTreeConstants.jjtNodeName[t.id]+"...:Can only DEF in global");
+				throw e;
 				//throw fault(only definition in global)
 			}
 			current_child++;
@@ -357,13 +562,46 @@ public class Generator {
 		for(int i=0; i<bodys.size(); ++i){
 			String funcType = this.root.funcs.get(funcName.get(i)).type;
 			semanticCheckbyFunc(bodys.get(i), funcType);
+			
 		}
 		
 		addConstFloat(root);
 		return result;
 	}
 	
-	public String emBulk(SimpleNode bulk, SymbolTable st){
+	private class unpackedObj{
+		
+		public Map<String, String> eleVars = new HashMap<String, String>();
+		public Map<String, Integer> isEleArray = new HashMap<String, Integer>();  
+		
+	}
+	
+	public unpackedObj unpackObj(String prefix, String objName){
+		
+		prefix = prefix + "_";
+		objItem obitem = root.objs.get(objName);
+		unpackedObj result = new unpackedObj();
+		for(String key: obitem.eleVars.keySet()){
+			String uName = prefix+key;
+			String type = obitem.eleVars.get(key);
+			Integer isArray = obitem.isEleArray.get(key);
+			if(type.equals("NUM") || type.equals("FLOAT") || type.equals("CHAR")){
+				result.eleVars.put(uName, type);
+				result.isEleArray.put(uName, isArray);
+			}else{
+				unpackedObj child = unpackObj(uName, type);
+				for(String key2: child.eleVars.keySet()){
+					result.eleVars.put(key2, child.eleVars.get(key2));
+					result.isEleArray.put(key2, child.isEleArray.get(key2));
+				}
+			}
+		}
+		
+		return result;
+		
+	}
+	
+	public String emBulk(SimpleNode bulk, SymbolTable st) throws Exception{
 		
 		String result = "1";
 		
@@ -374,7 +612,8 @@ public class Generator {
 				vsItem vitem = locateVar(t.m_Text, st);
 				
 				if(vitem == null){
-					return t.m_Text+"2";
+					Exception e = new Exception(t.m_Text+":Not defined variable");
+					throw e;
 				}
 				
 				t.m_Text = vitem.name;
@@ -384,14 +623,58 @@ public class Generator {
 		return result;
 	}
 	
-	public String emExpre(SimpleNode expre, ArrayList<String> type, SymbolTable st){ /*return "1" present ok, return symbol with
+	public String emExpre(SimpleNode expre, ArrayList<String> type, SymbolTable st, Integer mustVar) throws Exception{ /*return "1" present ok, return symbol with
 																		  postfix 2 present not deifined symbol, with 
 																		  postfix 0 present not match type*/
 		
-		//deal with call node
+		//deal with simple call node
 		if(MyNewGrammarTreeConstants.jjtNodeName[expre.id].equals("CALL")){
+			if(mustVar.equals(1)){
+				Exception e = new Exception(((SimpleNode)expre.jjtGetChild(0)).m_Text+":First parameter of LET must be a variable");
+				throw e;
+				//throw fault(var violate) 
+			}
 			String tmp = emCall(expre, type, st);
 			return tmp;
+		}
+		
+		//deal with var with pointer child(may be a call)
+		if(MyNewGrammarTreeConstants.jjtNodeName[expre.id].equals("VAR") && MyNewGrammarTreeConstants.jjtNodeName[((SimpleNode)expre.jjtGetChild(expre.jjtGetNumChildren()-1)).id].equals("pointer")){
+			String newVar = ((SimpleNode)expre.jjtGetChild(0)).m_Text;
+			for(int i=1; i<expre.jjtGetNumChildren(); ++i){
+				SimpleNode ele = (SimpleNode)((SimpleNode)expre.jjtGetChild(i)).jjtGetChild(0);
+				if(MyNewGrammarTreeConstants.jjtNodeName[ele.id].equals("CALL")){
+					String newfun;
+					if(root.objs.containsKey(((SimpleNode)expre.jjtGetChild(i-1)).m_Text)){
+						newfun = ((SimpleNode)expre.jjtGetChild(i-1)).m_Text+"_"+((SimpleNode)ele.jjtGetChild(0)).m_Text;
+					}else{
+						newfun = locateVar(((SimpleNode)expre.jjtGetChild(i-1)).m_Text, st).type+"_"+((SimpleNode)ele.jjtGetChild(0)).m_Text;
+					}
+					SimpleNode preAtom = (SimpleNode)expre.parent;
+					SimpleNode preSub = (SimpleNode)preAtom.parent;
+					((SimpleNode)ele.jjtGetChild(0)).m_Text = newfun;
+					Node[] newchildren = new Node[1];
+					newchildren[0] =  ele;
+					preAtom.children = newchildren;
+					ele.parent = preAtom;
+					return emExpre(preAtom, type, st, mustVar);
+				}else{
+					newVar = newVar+"_"+ele.m_Text;
+				}
+			}
+			((SimpleNode)expre.jjtGetChild(0)).m_Text = newVar;
+			Node[] newchildren;
+			if(((SimpleNode)expre.jjtGetChild(expre.jjtGetNumChildren()-1)).jjtGetNumChildren()>1){
+				System.out.println("shit");
+				newchildren = new Node[2];
+				newchildren[0] = (SimpleNode)expre.jjtGetChild(0);
+				newchildren[1] = ((SimpleNode)expre.jjtGetChild(expre.jjtGetNumChildren()-1)).jjtGetChild(1);
+				((SimpleNode)((SimpleNode)expre.jjtGetChild(expre.jjtGetNumChildren()-1)).jjtGetChild(1)).parent = expre;
+			}else{
+				newchildren = new Node[1];
+				newchildren[0] = (SimpleNode)expre.jjtGetChild(0);
+			}
+			expre.children = newchildren;
 		}
 		
 		//check this node if terminate
@@ -402,7 +685,8 @@ public class Generator {
 				vsItem vitem = locateVar(expre.m_Text, st);
 				
 				if(vitem == null){
-					return expre.m_Text+"2";
+					Exception e = new Exception(expre.m_Text+":Not defined variable");
+					throw e;
 				}
 				
 				etype = vitem.type;
@@ -419,34 +703,31 @@ public class Generator {
 				}
 				
 			}
-			return expre.m_Text+"0";
+			Exception e = new Exception(expre.m_Text+":Not match type");
+			throw e;
 		}
 		
 		//check children if non-terminate
 		Integer i = 0;
 		while(i<expre.jjtGetNumChildren()){
-			String accept = emExpre((SimpleNode)(expre.jjtGetChild(i)), type, st); 
-			if(!accept.equals("1")){
-				return accept;
-			}
+			emExpre((SimpleNode)(expre.jjtGetChild(i)), type, st, mustVar); 
 			++i;
 		}
 		
 		return "1";
 	}
 	
-	public String emCall(SimpleNode nodeCall, ArrayList<String> type, SymbolTable st){
+	public String emCall(SimpleNode nodeCall, ArrayList<String> type, SymbolTable st) throws Exception{
 	
 		String accept;
 		
 		if(this.root.funcs.containsKey(((SimpleNode)(nodeCall.jjtGetChild(0))).m_Text)){
 			for(int i=1; i<nodeCall.jjtGetNumChildren(); ++i){
-				accept = emExpre((SimpleNode)(nodeCall.jjtGetChild(i)), type, st);
-				if(!accept.equals("1")){
-					return accept;
-				}
+				emExpre((SimpleNode)(nodeCall.jjtGetChild(i)), type, st, 0);
 			}
 		}else{
+			Exception e = new Exception(((SimpleNode)(nodeCall.jjtGetChild(0))).m_Text+":No match function");
+			throw e;
 			//throw fault(no match function)
 		}
 		
@@ -544,8 +825,7 @@ public class Generator {
 		return var;
 	}
 
-	public String mtExpre(SimpleNode expre, SymbolTable st){
-		
+	public String mtExpre(SimpleNode expre, SymbolTable st) throws Exception{
 		String result = "NUM";
 		if(expre.jjtGetNumChildren()>1){			
 			for(int i=0; i<expre.jjtGetNumChildren(); ++i){
@@ -567,7 +847,7 @@ public class Generator {
 		return result;
 	}
 	
-	public String mtCond(SimpleNode cond, SymbolTable st){
+	public String mtCond(SimpleNode cond, SymbolTable st) throws Exception{
 		
 		String result = "NUM";
 		if(cond.jjtGetNumChildren()>1){
@@ -582,7 +862,7 @@ public class Generator {
 		return result;
 	}
 	
-	public String mtTerm(SimpleNode term, SymbolTable st){
+	public String mtTerm(SimpleNode term, SymbolTable st) throws Exception{
 		
 		String result = "NUM";
 		
@@ -613,7 +893,7 @@ public class Generator {
 		return result;
 	}
 	
-	public String mtSub(SimpleNode subterm, SymbolTable st){
+	public String mtSub(SimpleNode subterm, SymbolTable st) throws Exception{
 		
 		String result = "NUM";
 		
@@ -644,7 +924,7 @@ public class Generator {
 		return result;
 	}
 	
-	public String mtAtom(SimpleNode atom, SymbolTable st){
+	public String mtAtom(SimpleNode atom, SymbolTable st) throws Exception{
 		
 		String result = "NUM";
 		
@@ -674,12 +954,13 @@ public class Generator {
 		return result;
 	}
 	
-	public String mtVar(SimpleNode var, SymbolTable st){
+	public String mtVar(SimpleNode var, SymbolTable st) throws Exception{
 		
 		String result = "NUM";
 		
 		SimpleNode symbol = (SimpleNode)var.jjtGetChild(0);
 		vsItem vitem = locateVar(symbol.m_Text, st);
+		
 		if(vitem.type.equals("FLOAT")){
 			result = "FLOAT";
 		}
@@ -696,14 +977,16 @@ public class Generator {
 		
 	}
 	
-	public String mtCall(SimpleNode call, SymbolTable st){
+	public String mtCall(SimpleNode call, SymbolTable st) throws Exception{
 		
 		String result = "NUM";
 		
 		SimpleNode funcName = (SimpleNode)call.jjtGetChild(0);
 		fsItem fitem = getFuncInfo(funcName.m_Text);
-		
+	
 		if(!fitem.getNumpara().equals(call.jjtGetNumChildren()-1)){
+			Exception e = new Exception(((SimpleNode)call.jjtGetChild(0)).m_Text+":Number of parameters not match");
+			throw e;
 			//throw fault(number of parameters is not match)
 		}
 		
@@ -714,6 +997,8 @@ public class Generator {
 				target = "FLOAT";
 			}
 			if(!type.equals(target)){
+				Exception e = new Exception(((SimpleNode)call.jjtGetChild(0)).m_Text+":Type of parameter not match");
+				throw e;
 				//throw fault(not match parameter type)
 			}
 		}
@@ -726,7 +1011,7 @@ public class Generator {
 		return result;
 	}
 	
-	public String mtBulk(SimpleNode bulk, SymbolTable st, String acType){
+	public String mtBulk(SimpleNode bulk, SymbolTable st, String acType) throws Exception{
 		
 		String result = "1";
 		
@@ -736,7 +1021,17 @@ public class Generator {
 			if(MyNewGrammarTreeConstants.jjtNodeName[t.id].equals("SYMBOL")){
 				eleType = locateVar(t.m_Text, st).type;
 			}
+			
+			if(acType.equals("CHAR")){
+				acType = "NUM";
+			}
+			if(eleType.equals("CHAR")){
+				eleType = "NUM";
+			}
+			
 			if(!eleType.equals(acType)){
+				Exception e = new Exception(t.m_Text+":Not match array type");
+				throw e;
 				//throw fault(not match array type)
 			}
 		}
@@ -787,14 +1082,26 @@ public class Generator {
 	}
 	
 	
-	private String semanticCheckbyFunc(SimpleNode funcBodyNode, String acType){
+	private String semanticCheckbyFunc(SimpleNode funcBodyNode, String acType) throws Exception{
 		
 		String funcType = semanticCheckbyBody(funcBodyNode);
 		
 		if(funcType.equals("")){
+			Exception e = new Exception(((SimpleNode)((SimpleNode)funcBodyNode.parent).jjtGetChild(0)).m_Text+":No ret");
+			throw e;
 			//throw fault(no ret) 
 		}else{
+			
+			if(funcType.equals("CHAR")){
+				funcType = "NUM";
+			}
+			if(acType.equals("CHAR")){
+				acType = "NUM";
+			}
+			
 			if(!funcType.equals(acType)){
+				Exception e = new Exception(((SimpleNode)((SimpleNode)funcBodyNode.parent).jjtGetChild(0)).m_Text+":Ret not match funciton type");
+				throw e;
 				//throw fault(ret not match func type)
 			}
 		}
@@ -803,7 +1110,7 @@ public class Generator {
 	}
 	
 	//semantic check except duplic and not define fault
-	private String semanticCheckbyBody(SimpleNode BodyNode){
+	private String semanticCheckbyBody(SimpleNode BodyNode) throws Exception{
 		
 		String result = "";
 		SymbolTable st = findTablebyBody(root, Integer.parseInt(BodyNode.m_Text));
@@ -827,7 +1134,12 @@ public class Generator {
 					mtBulk((SimpleNode)t.jjtGetChild(1), st, acType);
 				}else{
 					expType = mtExpre((SimpleNode)t.jjtGetChild(1), st);
+					if(acType.equals("CHAR")){
+						acType = "NUM";
+					}
 					if(!expType.equals(acType)){
+						Exception e = new Exception("LET "+((SimpleNode)((SimpleNode)t.jjtGetChild(0)).jjtGetChild(0)).m_Text+"...:Expre not match variable type");
+						throw e;
 						//throw fault(expre type not match);
 					}
 				}
@@ -837,6 +1149,12 @@ public class Generator {
 				expType = mtExpre((SimpleNode)(t.jjtGetChild(0)), st);
 				acType = "NUM";
 				if(!expType.equals(acType)){
+					SimpleNode first = t;
+					while(first.m_Text.equals("")){
+						first = (SimpleNode)first.jjtGetChild(0);
+					}
+					Exception e = new Exception("?("+first.m_Text+"...):Type of expre in branch/loop must be NUM");
+					throw e;
 					//throw fault(expre type not match);
 				}
 				bodyType = semanticCheckbyBody((SimpleNode)t.jjtGetChild(1)); 
@@ -847,6 +1165,8 @@ public class Generator {
 			case "BOOM":
 				Integer ac = checkBoom(t);
 				if(!ac.equals(1)){
+					Exception e = new Exception("BOOM must within LOOP or Branch");
+					throw e;
 					//throw fault(BOOM fault)
 				}
 				break;
@@ -857,6 +1177,9 @@ public class Generator {
 					acType = "NUM";
 				}
 				if(!expType.equals(acType)){
+					SimpleNode first = (SimpleNode)t.jjtGetChild(0);
+					Exception e = new Exception("FOREACH "+MyNewGrammarTreeConstants.jjtNodeName[first.id]+"...):Type of expre in foreach must be NUM");
+					throw e;
 					//throw fault(expre type not match);
 				}
 				bodyType = semanticCheckbyBody((SimpleNode)t.jjtGetChild(2));

@@ -1,6 +1,7 @@
 package gui;
 
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Label;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -24,7 +25,6 @@ import TreeGenerator.MyNewGrammarTreeConstants;
 import TreeGenerator.Node;
 import TreeGenerator.ParseException;
 import TreeGenerator.SimpleNode;
-import linker.Linker;
 import linker.Utils;
 import mytree.MyTree;
 import mytree.ExpNode;
@@ -76,13 +76,13 @@ public class MyGUI {
 
 	class CompilerAction implements ActionListener{
 		public void actionPerformed(ActionEvent event){
-		    try {
-		    	InputStream inputStream = Utils.getStringStream(codeText.getText()+"@BOOM!");
-		    	MyNewGrammar myNewGrammar = new MyNewGrammar(inputStream,null);
-		    	myNewGrammar.compilerCall();
-		    	consoleText.setText(Linker.console);
-			} catch (ParseException e) {
-				e.printStackTrace();
+		    InputStream inputStream = Utils.getStringStream(codeText.getText()+"@BOOM!");
+			MyNewGrammar myNewGrammar = new MyNewGrammar(inputStream,null);
+			try {
+				myNewGrammar.compilerCall();
+			} 
+			catch (Exception e) {
+				consoleText.append("\r\n"+e.getMessage());
 			}
 		}
 	}
@@ -188,17 +188,30 @@ public class MyGUI {
 		mJFrame.setTitle("BOOM IT");
 		mJFrame.setLocation(10,10);
 		mJFrame.setLayout(null);
+
+          
+
 		MyGUI.jPlayer = (Player) (mJFrame).getCurrentPanel();
+
 		
-		JButton comButton = new JButton("Compile!"); 
-		comButton.setLocation(240, 380);
-		comButton.setBounds(500, 210, 150, 30);
+		JButton comButton = new JButton("Compile & Run"); 
+		comButton.setLocation(260, 380);
+		comButton.setBounds(565, 210, 150, 30);
+		
+
+		comButton.setContentAreaFilled(false);
+		comButton.setForeground(new java.awt.Color(0xc8c8c8));
+		
 		comButton.addActionListener(new CompilerAction());
 	    MyGUI.jPlayer.add(comButton);
 
 		JButton importButton = new JButton("choose file"); 
 		importButton.setLocation(240, 380);
-		importButton.setBounds(50, 210, 150, 30);
+		importButton.setBounds(20, 210, 150, 30);
+		
+		importButton.setContentAreaFilled(false);
+		importButton.setForeground(new java.awt.Color(0xc8c8c8));
+		
 		importButton.addActionListener(new FileChooseAction());
 	    MyGUI.jPlayer.add(importButton);
 	    
@@ -212,13 +225,28 @@ public class MyGUI {
 	public void drawConsolePanel(){
 		MyGUI.consoleJpanel=new MyJPanel();
 		JScrollPane jjp_streamaddGrammar=new JScrollPane(MyGUI.consoleJpanel);
-		jjp_streamaddGrammar.setBounds(50, 50, 600, 150);
+		
+		jjp_streamaddGrammar.setBounds(20, 20, 700, 175);
 		jjp_streamaddGrammar.getVerticalScrollBar().setUnitIncrement(20);
 		jjp_streamaddGrammar.getHorizontalScrollBar().setUnitIncrement(20);
-		MyGUI.consoleJpanel.setPreferredSize(new Dimension(1000,20));
+		
+		//ui
+		jjp_streamaddGrammar.getHorizontalScrollBar().setFont(null);
+		jjp_streamaddGrammar.getHorizontalScrollBar().setForeground(new java.awt.Color(0x1e1e1e));
+		jjp_streamaddGrammar.getHorizontalScrollBar().setBackground(new java.awt.Color(0x3e3e42));
+		jjp_streamaddGrammar.getVerticalScrollBar().setBackground(new java.awt.Color(0x3e3e42));
+		
+		MyGUI.consoleJpanel.setPreferredSize(new Dimension(1000,6000));
 		MyGUI.consoleJpanel.setLayout(null);
 		consoleText = new JTextArea("");
-		consoleText.setBounds(0, 0, 6000,200);
+		
+		consoleText.setForeground(new java.awt.Color(0xc8c8c8));
+		consoleText.setBackground(new java.awt.Color(0x1e1e1e));
+		Font x = new Font("Dialog",0,15);    
+		consoleText.setFont(x);
+		//consoleText.setOpaque(false);
+		
+		consoleText.setBounds(0, 0, 6000,6000);
 		MyGUI.consoleJpanel.add(consoleText);
 
 		MyGUI.jPlayer.add(jjp_streamaddGrammar);
@@ -227,13 +255,30 @@ public class MyGUI {
 	public void drawCodePanel(){
 		MyGUI.codeJpanel=new MyJPanel();
 		JScrollPane jjp_addGrammar=new JScrollPane(MyGUI.codeJpanel);
-		jjp_addGrammar.setBounds(50, 250, 600, 400);
+		jjp_addGrammar.setBounds(20, 250, 700, 400);
 		jjp_addGrammar.getVerticalScrollBar().setUnitIncrement(20);
+		
+		jjp_addGrammar.getVerticalScrollBar().setBackground(new java.awt.Color(0x3e3e42));
+		jjp_addGrammar.getHorizontalScrollBar().setBackground(new java.awt.Color(0x3e3e42));
+		
+		/*
+		actionlistener{
+			private static final long serialversionuid = 1l;
+		jtextarea textarea = new jtextarea();
+		jmenu formatmenu = new jmenu("格式");//格式菜单//menuitem
+		}*/
+		
 		MyGUI.codeJpanel.setPreferredSize(new Dimension(20*30,20*100));
 		MyGUI.codeJpanel.setLayout(null);
 		
-		codeText = new JTextArea("");
-		codeText.setBounds(0, 0, 600,2000);
+		codeText = new JTextArea("/*here is your code*/");
+		
+		codeText.setForeground(new java.awt.Color(0xc8c8c8));
+		codeText.setBackground(new java.awt.Color(0x1e1e1e));
+		Font x = new Font("Dialog",0,18);    
+		codeText.setFont(x);
+		
+		codeText.setBounds(0, 0, 700,2000);
 		MyGUI.codeJpanel.add(codeText);
 		MyGUI.jPlayer.add(jjp_addGrammar);
 		MyGUI.jPlayer.updateUI();
@@ -242,13 +287,25 @@ public class MyGUI {
 	public void drawStreamPanel(){
 		MyGUI.streamJpanel=new MyJPanel();
 		JScrollPane jjp_streamaddGrammar=new JScrollPane(MyGUI.streamJpanel);
-		jjp_streamaddGrammar.setBounds(750, 50, 600, 180);
+		jjp_streamaddGrammar.setBounds(750, 20, 620, 210);
 		jjp_streamaddGrammar.getVerticalScrollBar().setUnitIncrement(20);
-		MyGUI.streamJpanel.setPreferredSize(new Dimension(600,200));
-		MyGUI.streamJpanel.setLayout(null);
 
+		jjp_streamaddGrammar.getVerticalScrollBar().setBackground(new java.awt.Color(0x3e3e42));
+		jjp_streamaddGrammar.getHorizontalScrollBar().setBackground(new java.awt.Color(0x3e3e42));
+		
+		MyGUI.streamJpanel.setPreferredSize(new Dimension(640,300));
+		MyGUI.streamJpanel.setLayout(null);
+		
 		streamText = new JTextArea("");
-		streamText.setBounds(0, 0, 600,200);
+		streamText.setBounds(0, 0, 640,300);
+		
+		streamText.setForeground(new java.awt.Color(0xc8c8c8));
+		streamText.setBackground(new java.awt.Color(0x1e1e1e));
+		
+		Font x = new Font("Dialog",0,15);
+		streamText.setFont(x);
+		
+		
 		MyGUI.streamJpanel.add(streamText);
 		MyGUI.jPlayer.add(jjp_streamaddGrammar);
 		MyGUI.jPlayer.updateUI();
@@ -257,11 +314,13 @@ public class MyGUI {
 	public void drawTreePanel(){
 		MyGUI.treeJpanel=new MyJPanel();
 		JScrollPane jjp_addGrammar=new JScrollPane(MyGUI.treeJpanel);
-		jjp_addGrammar.setBounds(750, 250, 600, 400);
+		jjp_addGrammar.setBounds(750, 250, 620, 400);
 		jjp_addGrammar.getVerticalScrollBar().setUnitIncrement(20);
+		MyGUI.treeJpanel.setBackground(java.awt.Color.WHITE);
+		
 		MyGUI.treeJpanel.setPreferredSize(new Dimension(20*100*10,20*100));
 		MyGUI.treeJpanel.setLayout(null);
-
+		
 		MyGUI.jPlayer.add(jjp_addGrammar);
 		MyGUI.jPlayer.updateUI();
 	}

@@ -18,7 +18,7 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
 
   public MyNewGrammar(){};
 
-  public void compilerCall() throws ParseException
+  public void compilerCall() throws Exception
   {
 
 	    MyNewGrammar tmp = new MyNewGrammar();
@@ -32,7 +32,7 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
 	    SimpleNode oriRoot = new SimpleNode(0);
 	    while (stop.equals(0))
 	    {
-	      System.out.println("Reading from standard input...");
+	      //System.out.println("Reading from standard input...");
 	      try
 	      {
 	        stream.list.clear();
@@ -40,13 +40,14 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
 	        
 	        if(stream.list.get(0).equals("@")){
 	        	myGenerator.generateRoot(oriRoot);
-	        	myGenerator.root.print();
+	        	//myGenerator.root.print();
 	        	MyGUI.addRoot(oriRoot);
 	        	MyGUI.outputTree();
 	        	mytree.setTableManager(myGenerator);
 	        	mytree.setRoot(MyGUI.getTree());
 	        	mytree.tree2code();
 	        	mytree.outputCodes();
+	        	oriRoot.dump("");
 	        	MyGUI.clearAll();
 	            break;
 	        }
@@ -57,16 +58,17 @@ public class MyNewGrammar/*@bgen(jjtree)*/implements MyNewGrammarTreeConstants, 
 	      }
 	      catch (Exception e)
 	      {
-	    	  e.printStackTrace();
-	        System.out.println("NOK.");
-	        System.out.println(e.getMessage());
-	        ReInit(System.in);
+	    	//e.printStackTrace();
+	        //System.out.println("NOK.");
+	        //System.out.println(e.getMessage());
+	        //ReInit(System.in);
+	    	throw e;
 	      }
 	      catch (Error e)
 	      {
-	        System.out.println("Oops.");
+	        System.out.println("Oops.");	
 	        System.out.println(e.getMessage());
-	        break;
+	        throw e;
 	      }
 	    }
 	    /*
