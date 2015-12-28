@@ -57,6 +57,15 @@ print proc arr, len
 	ret
 print endp
 
+bo_div proc des,sou
+	mov eax,des
+	push edx
+	mov edx,0
+	idiv sou
+	pop edx
+	ret
+bo_div endp
+
 f_add proc f1:REAL8, f2:REAL8
 	finit
 	fld	f1

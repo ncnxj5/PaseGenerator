@@ -15,12 +15,228 @@ public class Generator {
 	public SymbolTable root;
 	public ArrayList<String> constFloat = new ArrayList<String>();
 	
+	private SimpleNode ini_foreach_count = new SimpleNode(10);
+	private SimpleNode inc_foreach_count = new SimpleNode(10);
+	private SimpleNode foreach_count_expre = new SimpleNode(22);
+	private SimpleNode array_for_each = new SimpleNode(16);
 	private Integer current_body = new Integer(0);
+	
+	private String initiate_for_each(){
+		
+		root.AddEvar("foreach_count");
+		root.vars.get("foreach_count").isArray = 0;
+		root.vars.get("foreach_count").type = "NUM";
+		root.vars.get("foreach_count").loc = -1;
+		
+		//create: LET count AS 0!
+		Node[] children = new Node[2];
+		SimpleNode var = new SimpleNode(39);
+		var.jjtSetParent(ini_foreach_count);
+		SimpleNode expre = new SimpleNode(22);
+		expre.jjtSetParent(ini_foreach_count);
+		//expre.m_Text = "NUM";
+		children[0] = var;
+		children[1] = expre;
+		ini_foreach_count.children = children;
+		
+		SimpleNode symbol = new SimpleNode(3);
+		symbol.m_Text = "foreach_count";
+		var.jjtAddChild(symbol, 0);
+		symbol.jjtSetParent(var);
+		
+		SimpleNode cond = new SimpleNode(26);
+		//cond.m_Text = "NUM";
+		expre.jjtAddChild(cond, 0);
+		cond.jjtSetParent(expre);
+		
+		SimpleNode term = new SimpleNode(32);
+		//term.m_Text = "NUM";
+		cond.jjtAddChild(term, 0);
+		term.jjtSetParent(cond);
+		
+		SimpleNode subterm = new SimpleNode(35);
+		//subterm.m_Text = "NUM";
+		term.jjtAddChild(subterm, 0);
+		subterm.jjtSetParent(term);
+		
+		SimpleNode atom = new SimpleNode(38);
+		//atom.m_Text = "NUM";
+		subterm.jjtAddChild(atom, 0);
+		atom.jjtSetParent(subterm);
+		
+		SimpleNode num = new SimpleNode(13);
+		num.m_Text = "0";
+		atom.jjtAddChild(num, 0);
+		num.jjtSetParent(atom);
+		
+		
+		//create: LET count AS count+1
+		children = new Node[2];
+		var = new SimpleNode(39);
+		var.jjtSetParent(inc_foreach_count);
+		expre = new SimpleNode(22);
+		expre.jjtSetParent(inc_foreach_count);
+		//expre.m_Text = "NUM";
+		children[0] = var;
+		children[1] = expre;
+		inc_foreach_count.children = children;
+		
+		symbol = new SimpleNode(3);
+		symbol.m_Text = "foreach_count";
+		var.jjtAddChild(symbol, 0);
+		symbol.jjtSetParent(var);
+		
+		cond = new SimpleNode(26);
+		//cond.m_Text = "NUM";
+		expre.jjtAddChild(cond, 0);
+		cond.jjtSetParent(expre);
+		
+		term = new SimpleNode(32);
+		//term.m_Text = "NUM";
+		cond.jjtAddChild(term, 0);
+		term.jjtSetParent(cond);
+		
+		subterm = new SimpleNode(35);
+		//subterm.m_Text = "NUM";
+		term.jjtAddChild(subterm, 0);
+		subterm.jjtSetParent(term);
+		
+		atom = new SimpleNode(38);
+		//atom.m_Text = "NUM";
+		subterm.jjtAddChild(atom, 0);
+		atom.jjtSetParent(subterm);
+		
+		var = new SimpleNode(39);
+		var.jjtSetParent(atom);
+		atom.jjtAddChild(var, 0);
+		
+		symbol = new SimpleNode(3);
+		symbol.m_Text = "foreach_count";
+		symbol.jjtSetParent(var);
+		var.jjtAddChild(symbol, 0);
+		
+		SimpleNode plus = new SimpleNode(33);
+		//plus.m_Text = "NUM";
+		plus.jjtSetParent(term);
+		term.jjtAddChild(plus, 1);
+		
+		subterm = new SimpleNode(35);
+		//subterm.m_Text = "NUM";
+		subterm.jjtSetParent(term);
+		term.jjtAddChild(subterm, 2);
+		
+		atom = new SimpleNode(38);
+		//atom.m_Text = "NUM";
+		atom.jjtSetParent(subterm);
+		subterm.jjtAddChild(atom, 0);
+		
+		num = new SimpleNode(13);
+		num.m_Text = "1";
+		num.jjtSetParent(atom);
+		atom.jjtAddChild(num, 0);
+		
+		//create: count<1
+		cond = new SimpleNode(26);
+		//cond.m_Text = "NUM";
+		cond.jjtSetParent(foreach_count_expre);
+		foreach_count_expre.jjtAddChild(cond, 0);
+		
+		term = new SimpleNode(32);
+		//term.m_Text = "NUM";
+		term.jjtSetParent(cond);
+		cond.jjtAddChild(term, 0);
+		
+		subterm = new SimpleNode(35);
+		//subterm.m_Text = "NUM";
+		subterm.jjtSetParent(term);
+		term.jjtAddChild(subterm, 0);
+		
+		atom = new SimpleNode(38);
+		//atom.m_Text = "NUM";
+		atom.jjtSetParent(subterm);
+		subterm.jjtAddChild(atom, 0);
+		
+		var = new SimpleNode(39);
+		var.jjtSetParent(atom);
+		atom.jjtAddChild(var, 0);
+		
+		symbol = new SimpleNode(3);
+		symbol.m_Text = "foreach_count";
+		symbol.jjtSetParent(var);
+		var.jjtAddChild(symbol, 0);
+		
+		SimpleNode less = new SimpleNode(27);
+		//less.m_Text = "NUM";
+		less.jjtSetParent(cond);
+		cond.jjtAddChild(less, 1);
+		
+		term = new SimpleNode(32);
+		//term.m_Text = "NUM";
+		term.jjtSetParent(cond);
+		cond.jjtAddChild(term, 2);
+		
+		subterm = new SimpleNode(35);
+		//subterm.m_Text = "NUM";
+		subterm.jjtSetParent(term);
+		term.jjtAddChild(subterm, 0);
+		
+		atom = new SimpleNode(38);
+		//atom.m_Text = "NUM";
+		atom.jjtSetParent(subterm);
+		subterm.jjtAddChild(atom, 0);
+		
+		num = new SimpleNode(13);
+		num.m_Text = "";
+		num.jjtSetParent(atom);
+		atom.jjtAddChild(num, 0);
+		
+		ini_foreach_count.dump("");
+		inc_foreach_count.dump("");
+		foreach_count_expre.dump("");
+		
+		//create ARRAY node
+		term = new SimpleNode(32);
+		//term.m_Text = "NUM";
+		term.jjtSetParent(array_for_each);
+		array_for_each.jjtAddChild(term, 0);
+		
+		subterm = new SimpleNode(35);
+		//subterm.m_Text = "NUM";
+		subterm.jjtSetParent(term);
+		term.jjtAddChild(subterm, 0);
+		
+		atom = new SimpleNode(38);
+		//atom.m_Text = "NUM";
+		atom.jjtSetParent(subterm);
+		subterm.jjtAddChild(atom, 0);
+		
+		var = new SimpleNode(39);
+		var.jjtSetParent(atom);
+		atom.jjtAddChild(var, 0);
+		
+		symbol = new SimpleNode(3);
+		symbol.m_Text = "foreach_count";
+		symbol.jjtSetParent(var);
+		var.jjtAddChild(symbol, 0);
+		
+		return "1";
+	}
 	
 	//this func must be call right after root initiated
 	private String CreateInline(){
 		
+		initiate_for_each();
+		
 		//create inline func
+		root.AddEfunc("inputnum");
+		root.funcs.get("inputnum").type = "NUM";
+		
+		root.AddEfunc("inputcha");
+		root.funcs.get("inputcha").type = "CHAR";
+		
+		root.AddEfunc("inputflo");
+		root.funcs.get("inputflo").type = "FLOAT";
+		
 		root.AddEfunc("printnum");
 		root.funcs.get("printnum").type = "NUM";
 		root.funcs.get("printnum").addPara("n1", "NUM", 0);
@@ -32,13 +248,6 @@ public class Generator {
 		root.AddEfunc("printflo");
 		root.funcs.get("printflo").type = "NUM";
 		root.funcs.get("printflo").addPara("f1", "FLOAT", 0);
-
-		root.AddEfunc("inputnum");
-		root.funcs.get("inputnum").type = "CHAR";
-		root.AddEfunc("inputcha");
-		root.funcs.get("inputcha").type = "NUM";
-		root.AddEfunc("inputflo");
-		root.funcs.get("inputflo").type = "FLOAT";
 		
 		root.AddEfunc("printspace");
 		root.funcs.get("printspace").type = "NUM";
@@ -136,6 +345,23 @@ public class Generator {
 		return result;
 	}
 	
+	private String turnForeachToLoop(SimpleNode body, String pix, String array){
+		
+		for(Integer i=0; i<body.jjtGetNumChildren(); ++i){
+			SimpleNode tmp = (SimpleNode)body.jjtGetChild(i);
+			if(tmp.m_Text.equals(pix)){
+				tmp.m_Text = array;
+				SimpleNode arrayCopy = new SimpleNode(array_for_each);
+				body.jjtAddChild(arrayCopy, i+1);
+				arrayCopy.jjtSetParent(body);
+			}else{
+				turnForeachToLoop(tmp, pix, array);
+			}
+		}
+		
+		return "1";
+	}
+	
 	private String turnComCall(SimpleNode comCall, SymbolTable st){
 		
 		for(Integer i=1; i<comCall.jjtGetNumChildren(); ++i){
@@ -214,12 +440,12 @@ public class Generator {
 					if(MyNewGrammarTreeConstants.jjtNodeName[tc.id].equals("SYMBOL")){
 						
 						if(t.jjtGetNumChildren()>2){
-							Exception e = new Exception(tc.m_Text+":Can not define object array");
+							Exception e = new Exception(((SimpleNode)t.jjtGetChild(0)).m_Text+":Can not define object array");
 							throw e;
 							//throw fault(can not be obj array)
 						}
 						if(!this.root.objs.containsKey(tc.m_Text)){
-							Exception e = new Exception(tc.m_Text+":not defined boject");
+							Exception e = new Exception(((SimpleNode)t.jjtGetChild(0)).m_Text+":not defined boject");
 							throw e;
 							//throw fault(not defined obj)
 						}
@@ -308,17 +534,55 @@ public class Generator {
 				break;
 			case "LOOP":
 			case "BRANCH":
+				System.out.println("test");
 				emExpre((SimpleNode)(t.jjtGetChild(0)), allType, result, 0);
 				tc = (SimpleNode)(t.jjtGetChild(1));
 				current_body += 1;
 				tc.m_Text = current_body.toString();
 				result.children.add(generate(tc, current_loc, result, tmp));		   
 				break;
-			case "FOREACH": 
-				tc = (SimpleNode)(t.jjtGetChild(2));
-				current_body += 1;
-				tc.m_Text = current_body.toString();
-				result.children.add(generate(tc, current_loc, result, tmp));
+			case "FOREACH":
+				if(locateVar(((SimpleNode)t.jjtGetChild(1)).m_Text, result)==null){
+					Exception e = new Exception(((SimpleNode)t.jjtGetChild(1)).m_Text+":not defined variable");
+					throw e;
+				}
+				
+				turnForeachToLoop((SimpleNode)t.jjtGetChild(2), ((SimpleNode)t.jjtGetChild(0)).m_Text, ((SimpleNode)t.jjtGetChild(1)).m_Text);
+				
+				Node[] newchildren = new Node[root.jjtGetNumChildren()+1];
+				for(int i=0; i<current_child; ++i){
+					newchildren[i] = root.jjtGetChild(i);
+				}
+				SimpleNode iniCopy = new SimpleNode(ini_foreach_count); 
+				newchildren[current_child] = iniCopy;
+				iniCopy.jjtSetParent(root);
+				for(int i=current_child+1; i<root.jjtGetNumChildren()+1; ++i){
+					newchildren[i] = root.jjtGetChild(i-1);
+				}
+				root.children = newchildren;
+				
+				SimpleNode foreachExpre = new SimpleNode(foreach_count_expre);
+				String size = locateVar(((SimpleNode)t.jjtGetChild(1)).m_Text, result).isArray.toString();
+				SimpleNode pix = foreachExpre;
+				while(!MyNewGrammarTreeConstants.jjtNodeName[pix.id].equals("NUM")){
+					pix = (SimpleNode)pix.jjtGetChild(pix.jjtGetNumChildren()-1);
+				}
+				pix.m_Text = size;
+				
+				SimpleNode forBody = (SimpleNode)t.jjtGetChild(2);
+				
+				SimpleNode incCopy = new SimpleNode(inc_foreach_count);
+				forBody.jjtAddChild(incCopy, forBody.jjtGetNumChildren());
+				incCopy.jjtSetParent(forBody);
+				
+				newchildren = new Node[2];
+				newchildren[0] = foreachExpre;
+				newchildren[1] = forBody;
+				t.children = newchildren;
+				foreachExpre.jjtSetParent(t);
+				forBody.jjtSetParent(t);
+				t.id = 5;
+						
 				break;
 			}
 			current_child += 1;
@@ -351,12 +615,12 @@ public class Generator {
 					if(MyNewGrammarTreeConstants.jjtNodeName[tc.id].equals("SYMBOL")){
 						
 						if(t.jjtGetNumChildren()>2){
-							Exception e = new Exception(tc.m_Text+":Can not define object array");
+							Exception e = new Exception(((SimpleNode)t.jjtGetChild(0)).m_Text+":Can not define object array");
 							throw e;
 							//throw fault(can not be obj array)
 						}
 						if(!this.root.objs.containsKey(tc.m_Text)){
-							Exception e = new Exception(tc.m_Text+":not defined boject");
+							Exception e = new Exception(((SimpleNode)t.jjtGetChild(0)).m_Text+":not defined boject");
 							throw e;
 							//throw fault(not defined obj)
 						}
@@ -465,7 +729,7 @@ public class Generator {
 										if(type.equals("NUM") || type.equals("CHAR") || type.equals("FLOAT")){
 											obj.addVar(((SimpleNode)defTmp.jjtGetChild(0)).m_Text, type, compute_term((SimpleNode)((SimpleNode)defTmp.jjtGetChild(2))));
 										}else{
-											Exception e = new Exception(tc.m_Text+":Can not define object array");
+											Exception e = new Exception(((SimpleNode)defTmp.jjtGetChild(0)).m_Text+":Can not define object array");
 											throw e;
 											//throw fault(no obj array)
 										}
@@ -648,6 +912,10 @@ public class Generator {
 					if(root.objs.containsKey(((SimpleNode)expre.jjtGetChild(i-1)).m_Text)){
 						newfun = ((SimpleNode)expre.jjtGetChild(i-1)).m_Text+"_"+((SimpleNode)ele.jjtGetChild(0)).m_Text;
 					}else{
+						if(locateVar(((SimpleNode)expre.jjtGetChild(i-1)).m_Text, st)==null){
+							Exception e = new Exception(((SimpleNode)expre.jjtGetChild(i-1)).m_Text+":undefined symbol");
+							throw e;
+						}
 						newfun = locateVar(((SimpleNode)expre.jjtGetChild(i-1)).m_Text, st).type+"_"+((SimpleNode)ele.jjtGetChild(0)).m_Text;
 					}
 					SimpleNode preAtom = (SimpleNode)expre.parent;
@@ -703,6 +971,7 @@ public class Generator {
 				}
 				
 			}
+			
 			Exception e = new Exception(expre.m_Text+":Not match type");
 			throw e;
 		}
@@ -1153,7 +1422,7 @@ public class Generator {
 					while(first.m_Text.equals("")){
 						first = (SimpleNode)first.jjtGetChild(0);
 					}
-					Exception e = new Exception("?("+first.m_Text+"...):Type of expre in branch/loop must be NUM");
+					Exception e = new Exception(MyNewGrammarTreeConstants.jjtNodeName[t.id]+"("+first.m_Text+"...):Type of expre in branch/loop must be NUM");
 					throw e;
 					//throw fault(expre type not match);
 				}
@@ -1170,6 +1439,7 @@ public class Generator {
 					//throw fault(BOOM fault)
 				}
 				break;
+			/*
 			case "FOREACH": 
 				expType = MyNewGrammarTreeConstants.jjtNodeName[((SimpleNode)t.jjtGetChild(0)).id];
 				acType = getVar(st, ((SimpleNode)t.jjtGetChild(0)).m_Text).type;
@@ -1178,7 +1448,7 @@ public class Generator {
 				}
 				if(!expType.equals(acType)){
 					SimpleNode first = (SimpleNode)t.jjtGetChild(0);
-					Exception e = new Exception("FOREACH "+MyNewGrammarTreeConstants.jjtNodeName[first.id]+"...):Type of expre in foreach must be NUM");
+					Exception e = new Exception("FOREACH "+MyNewGrammarTreeConstants.jjtNodeName[first.id]+"...):Type of foreach not match");
 					throw e;
 					//throw fault(expre type not match);
 				}
@@ -1187,6 +1457,7 @@ public class Generator {
 					result = bodyType;
 				}
 				break;
+				*/
 			}
 			current_child += 1;
 		}

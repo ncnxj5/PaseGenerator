@@ -380,7 +380,7 @@ public class MyTree {
 	}
 	
 	public void boomStm(ExpNode boomNode,String boomLabel){
-		threeAddCodes.add(getJmpCode("jmp",boomLabel));
+		threeAddCodes.add(".BREAK");
 	}
 	
 	public String expressLRD(ExpNode expNode){
@@ -617,6 +617,15 @@ public class MyTree {
 						if((tableManager.getVar("", subtermResString)!=null)
 								&&(tableManager.getVar("", subtermResString).isArray!=0))
 							return subtermResString;
+						else{
+							if(i==0&&termNode.expChildren.get(0).mText.equals("NUM")){
+								//call type shift
+								threeAddCodes.add(num2Float(subtermResString));
+								//WARNING hard code
+								resVal = floatOrder;
+								threeAddCodes.add(f_get1AddCode("","f_eax"));
+							}
+						}
 					}
 				}
 				else if(termNode.expChildren.get(i).content.equals("PLUS")){
@@ -664,8 +673,9 @@ public class MyTree {
 				if(subtermNode.expChildren.get(i).content.equals("atom")){
 					atomResString=atomLRD(subtermNode.expChildren.get(i),resVal+""); 
 					if(atomResString.charAt(atomResString.length()-1)==']'){
-						resVal = cntOrder;
-						threeAddCodes.add(get1AddCodeArray(parntVal, atomResString));
+						//resVal = cntOrder;
+						threeAddCodes.add(get1AddCodeArray(resVal+"", atomResString));
+						//cntOrder++;
 					}
 					else if(atomResString.equals("call")){
 						//threeAddCodes.add(regGeteax(resVal+""));
@@ -694,7 +704,10 @@ public class MyTree {
 					atomResString=atomLRD(subtermNode.expChildren.get(i+1),resVal+"");
 					threeAddCodes.add(get1AddCode("",atomResString));
 					i++;
-					threeAddCodes.add(get3AddCode("idiv",resVal,cntVal+""));
+					//threeAddCodes.add(get3AddCode("idiv",resVal,cntVal+""));
+					//WARNING hard code
+					threeAddCodes.add("invoke bo_div"+","+judgeReg(resVal)+","+judgeReg(cntVal));
+					threeAddCodes.add(regGeteax(resVal+""));
 				}
 			}
 		}
@@ -712,8 +725,18 @@ public class MyTree {
 					}
 					else{
 						if(tableManager.getVar("", atomResString)!=null){
-							if(tableManager.getVar("", atomResString).isArray==0)
-								threeAddCodes.add(f_get1AddCode("",atomResString));
+							if(tableManager.getVar("", atomResString).isArray==0){
+								if(i==0&&subtermNode.expChildren.get(0).mText.equals("NUM")){
+									//call type shift
+									resVal = floatOrder;
+									threeAddCodes.add(num2Float(resVal+""));
+									//WARNING hard code
+									threeAddCodes.add(f_get1AddCode("","f_eax"));
+								}
+								else
+									threeAddCodes.add(f_get1AddCode("",atomResString));
+								
+							}
 							else
 								return atomResString;
 						}
@@ -756,7 +779,7 @@ public class MyTree {
 	}
 	public String atomLRD(ExpNode atomNode,String parntVal){
 		String contentString = atomNode.expChildren.get(0).content;
-		if(contentString.equals("CHARACTER")||contentString.equals("NUM")||contentString.equals("FLOAT")){
+		if(contentString.equals("CHAR")||contentString.equals("NUM")||contentString.equals("FLOAT")){
 			System.out.println("here will return "+atomNode.expChildren.get(0).mText);
 			return atomNode.expChildren.get(0).mText;
 		}
@@ -768,7 +791,9 @@ public class MyTree {
 		}
 		else if(contentString.equals("CALL")){
 			//WARNING hard code and disconsideration
+			//int callReg = cntOrder;
 			callStm(atomNode.expChildren.get(0),parntVal);
+			//return callReg+"";
 			return "call";
 		}
 		else
@@ -830,6 +855,7 @@ public class MyTree {
 		}
 		else
 			typeString = "shitType";
+		
 		String resString = "";
 		if(isArray==0){
 			resString = (valName+" "+typeString+" "+typeInit);

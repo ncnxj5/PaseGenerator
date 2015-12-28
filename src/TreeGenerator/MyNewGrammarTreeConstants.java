@@ -13,12 +13,12 @@ public interface MyNewGrammarTreeConstants
   public int JJTBOOM = 7;
   public int JJTCOMMENT = 8;
   public int JJTFOREACH = 9;
-  public int JJTNUM = 10;
-  public int JJTFLOAT = 11;
-  public int JJTCHAR = 12;
-  public int JJTLET = 13;
-  public int JJTBULK = 14;
-  public int JJTDEF = 15;
+  public int JJTLET = 10;
+  public int JJTBULK = 11;
+  public int JJTDEF = 12;
+  public int JJTNUM = 13;
+  public int JJTFLOAT = 14;
+  public int JJTCHAR = 15;
   public int JJTARRAY = 16;
   public int JJTPARA = 17;
   public int JJTPARAS = 18;
@@ -57,12 +57,12 @@ public interface MyNewGrammarTreeConstants
     "BOOM",
     "comment",
     "FOREACH",
-    "NUM",
-    "FLOAT",
-    "CHAR",
     "LET",
     "BULK",
     "DEF",
+    "NUM",
+    "FLOAT",
+    "CHAR",
     "ARRAY",
     "PARA",
     "PARAS",
@@ -90,4 +90,4 @@ public interface MyNewGrammarTreeConstants
     "pointer",
   };
 }
-/* JavaCC - OriginalChecksum=5b9ed270f2a602e1806431755519f8a3 (do not edit this line) */
+/* JavaCC - OriginalChecksum=3ed6e284e7c655cd8f0f98d17f328c07 (do not edit this line) */

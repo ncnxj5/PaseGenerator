@@ -23,8 +23,8 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import TreeGenerator.MyNewGrammar;
 import TreeGenerator.MyNewGrammarTreeConstants;
 import TreeGenerator.Node;
-import TreeGenerator.ParseException;
 import TreeGenerator.SimpleNode;
+import linker.Linker;
 import linker.Utils;
 import mytree.MyTree;
 import mytree.ExpNode;
@@ -77,11 +77,16 @@ public class MyGUI {
 	class CompilerAction implements ActionListener{
 		public void actionPerformed(ActionEvent event){
 		    InputStream inputStream = Utils.getStringStream(codeText.getText()+"@BOOM!");
+		    //consoleText.setText("");
 			MyNewGrammar myNewGrammar = new MyNewGrammar(inputStream,null);
 			try {
 				myNewGrammar.compilerCall();
+				consoleText.append(Linker.console);
 			} 
 			catch (Exception e) {
+				consoleText.append("\r\n"+e.getMessage());
+			}
+			catch (Error e) {
 				consoleText.append("\r\n"+e.getMessage());
 			}
 		}
@@ -118,12 +123,12 @@ public class MyGUI {
 	}
 	
 	public static void addStream(ArrayList<String> stream){
-		ArrayList<String> cntStirngs = new ArrayList<String>();
+		ArrayList<String> cntStrings = new ArrayList<String>();
 		for(int i =0;i<stream.size();i++){
-			cntStirngs.add(stream.get(i));
-			System.out.println(cntStirngs);
+			cntStrings.add(stream.get(i));
+			//System.out.println(cntStirngs);
 		}
-		MyGUI.streamList.add(cntStirngs);
+		MyGUI.streamList.add(cntStrings);
 	}
 	
 	double rootAlign = 0;
@@ -261,14 +266,7 @@ public class MyGUI {
 		jjp_addGrammar.getVerticalScrollBar().setBackground(new java.awt.Color(0x3e3e42));
 		jjp_addGrammar.getHorizontalScrollBar().setBackground(new java.awt.Color(0x3e3e42));
 		
-		/*
-		actionlistener{
-			private static final long serialversionuid = 1l;
-		jtextarea textarea = new jtextarea();
-		jmenu formatmenu = new jmenu("格式");//格式菜单//menuitem
-		}*/
-		
-		MyGUI.codeJpanel.setPreferredSize(new Dimension(20*30,20*100));
+		MyGUI.codeJpanel.setPreferredSize(new Dimension(20*100,20*100));
 		MyGUI.codeJpanel.setLayout(null);
 		
 		codeText = new JTextArea("/*here is your code*/");
@@ -278,7 +276,7 @@ public class MyGUI {
 		Font x = new Font("Dialog",0,18);    
 		codeText.setFont(x);
 		
-		codeText.setBounds(0, 0, 700,2000);
+		codeText.setBounds(0, 0, 2000,2000);
 		MyGUI.codeJpanel.add(codeText);
 		MyGUI.jPlayer.add(jjp_addGrammar);
 		MyGUI.jPlayer.updateUI();
@@ -293,11 +291,11 @@ public class MyGUI {
 		jjp_streamaddGrammar.getVerticalScrollBar().setBackground(new java.awt.Color(0x3e3e42));
 		jjp_streamaddGrammar.getHorizontalScrollBar().setBackground(new java.awt.Color(0x3e3e42));
 		
-		MyGUI.streamJpanel.setPreferredSize(new Dimension(640,300));
+		MyGUI.streamJpanel.setPreferredSize(new Dimension(10000,10000));
 		MyGUI.streamJpanel.setLayout(null);
 		
 		streamText = new JTextArea("");
-		streamText.setBounds(0, 0, 640,300);
+		streamText.setBounds(0, 0, 10000,10000);
 		
 		streamText.setForeground(new java.awt.Color(0xc8c8c8));
 		streamText.setBackground(new java.awt.Color(0x1e1e1e));
